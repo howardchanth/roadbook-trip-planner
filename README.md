@@ -1,6 +1,6 @@
 # Roadbook
 
-A responsive trip overview, itinerary, 3D route map, and shared-expense ledger built with React, TypeScript, Vite, and Three.js.
+A responsive trip overview, itinerary, flat route schematic, and shared-expense ledger built with React, TypeScript, Vite, and Lucide.
 
 ## Run the local preview
 
@@ -13,7 +13,7 @@ Open the local URL Vite prints. The current trip fixture lives in `.local/trip.j
 
 The itinerary editor is on **Trip details → Edit day**. It updates a day's title, plan, travel note, lodging, meal ideas, and editor attribution. Dates and mapped cities stay fixed so the route and progress views remain aligned. Local edits stay in this browser; shared edits write to the Sheet and appear for everyone.
 
-The Overview uses a north-up Three.js map with OpenStreetMap tiles loaded on demand for the visible trip region. The map keeps the route visible if tiles cannot load and shows the required contributor credit. The tile service receives the requested map area, not traveler or expense rows. Set `VITE_MAP_TILE_TEMPLATE` to use a compatible tile provider; follow that provider's attribution and caching requirements.
+The Overview uses a lightweight SVG route schematic that keeps the booked overnight sequence readable on phones, tablets, and laptops. It shows the covered segment, planned segment, current marker, stop labels, and date strip without external map tiles or a network dependency.
 
 This workspace is connected to the existing trip spreadsheet through an owner-authorized Apps Script endpoint. The initial trip plan and traveler list are in the app-managed tabs; sample expenses remain in this browser until travelers submit real entries. `.env.local`, `.local/`, and invite tokens are private and ignored by Git. The website itself has not been published.
 
