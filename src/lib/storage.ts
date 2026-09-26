@@ -5,6 +5,9 @@ const TOKEN_KEY = 'roadbook:invite-token';
 const storageKey = (tripId: string) => `roadbook:v1:${tripId}`;
 const memberStorageKey = (tripId: string) => `roadbook:v1:${tripId}:members`;
 const tripStorageKey = (tripId: string) => `roadbook:v1:${tripId}:trip`;
+const remoteSnapshotStorageKey = 'roadbook:remote-snapshot:v1';
+const LIVE_READ_TIMEOUT_MS = 20_000;
+const LATE_CALLBACK_GRACE_MS = 60_000;
 
 export interface LocalLedger {
   expenses: Expense[];
@@ -53,6 +56,31 @@ export function dedupeExpenses(expenses: Expense[]): Expense[] {
 
 function normalizeLedgerResponse(response: LedgerResponse): LedgerResponse {
   return Array.isArray(response.expenses) ? { ...response, expenses: dedupeExpenses(response.expenses) } : response;
+}
+
+function inviteHint(token: string): string {
+  return `${token.length}:${token.slice(0, 10)}`;
+}
+
+function cacheRemoteSnapshot(token: string, snapshot: LedgerResponse): void {
+  if (!snapshot.ok || !snapshot.trip?.id || !snapshot.members?.length) return;
+  try {
+    window.localStorage.setItem(remoteSnapshotStorageKey, JSON.stringify({ inviteHint: inviteHint(token), snapshot }));
+  } catch {
+    // A full or restricted browser storage should never block the live connection.
+  }
+}
+
+function loadCachedRemoteSnapshot(token: string): LedgerResponse | null {
+  try {
+    const raw = window.localStorage.getItem(remoteSnapshotStorageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { inviteHint?: string; snapshot?: LedgerResponse };
+    if (parsed.inviteHint !== inviteHint(token) || !parsed.snapshot?.ok || !parsed.snapshot.trip?.id || !parsed.snapshot.members?.length) return null;
+    return normalizeLedgerResponse(parsed.snapshot);
+  } catch {
+    return null;
+  }
 }
 
 export function getInviteToken(): string | null {
@@ -179,7 +207,15 @@ export function resetLocalLedger(tripId: string, members: Traveler[], seedExpens
 export async function readLiveSnapshot(): Promise<LedgerResponse> {
   const token = getInviteToken();
   if (!endpoint || !token) throw new Error('A private invite and Apps Script endpoint are required.');
-  return normalizeLedgerResponse(await requestJsonp(endpoint, token));
+  try {
+    const snapshot = normalizeLedgerResponse(await requestJsonpWithRetry(endpoint, token));
+    cacheRemoteSnapshot(token, snapshot);
+    return snapshot;
+  } catch (error) {
+    const cached = loadCachedRemoteSnapshot(token);
+    if (cached) return cached;
+    throw error;
+  }
 }
 
 export async function mutateLive(mutation: Mutation): Promise<LedgerResponse> {
@@ -223,13 +259,32 @@ function requestJsonp(url: string, token: string): Promise<LedgerResponse> {
       reject(new Error('Could not read the shared spreadsheet. Check the Apps Script deployment and private invite link.'));
     };
     const timeoutId = window.setTimeout(() => {
-      cleanup();
+      // Apps Script can finish a request after the browser-side timeout, especially
+      // on a cold start. Keep a harmless callback briefly so a late JSONP response
+      // cannot throw "callback is not a function" and poison the page.
+      script.remove();
+      window.clearTimeout(timeoutId);
+      callbacks[callbackName] = () => undefined;
+      window.setTimeout(() => { delete callbacks[callbackName]; }, LATE_CALLBACK_GRACE_MS);
       reject(new Error('The spreadsheet read timed out. Try refreshing the page.'));
-    }, 12_000);
+    }, LIVE_READ_TIMEOUT_MS);
     const query = new URLSearchParams({ action: 'read', token, callback: `RoadbookCallbacks.${callbackName}`, nonce: String(Date.now()) });
     script.src = `${url}${url.includes('?') ? '&' : '?'}${query.toString()}`;
     document.head.append(script);
   });
+}
+
+async function requestJsonpWithRetry(url: string, token: string): Promise<LedgerResponse> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await requestJsonp(url, token);
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => window.setTimeout(resolve, 900));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Could not read the shared spreadsheet.');
 }
 
 async function postForm(url: string, token: string, mutation: Mutation): Promise<void> {
