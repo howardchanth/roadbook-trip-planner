@@ -66,7 +66,7 @@ export default function App() {
       const localMembers = loadLocalMembers(loaded.source.trip.id, loaded.source.members);
       const localSource = { ...loaded.source, members: localMembers };
       setSource(localSource);
-      const localLedger = loadLocalLedger(loaded.source.trip.id, localMembers);
+      const localLedger = loadLocalLedger(loaded.source.trip.id, localMembers, loaded.source.expenses ?? []);
       setLedger(localLedger);
 
       if (getEndpointConfigured() && token) {
@@ -227,7 +227,7 @@ export default function App() {
 
   function resetLedger(): void {
     if (!source) return;
-    const fresh = resetLocalLedger(source.trip.id, members);
+    const fresh = resetLocalLedger(source.trip.id, members, source.expenses ?? []);
     setLedger(fresh);
   }
 
@@ -273,7 +273,7 @@ export default function App() {
           <div className="breadcrumb"><span>TRIPS</span><span className="breadcrumb-separator">/</span><strong>{trip.title}</strong></div>
           <div className="topbar__right"><span className="today-date">{formatCurrentDate()}</span><span className={`storage-pill storage-pill--${mode}`}><i />{storageStatus}</span>{mode === 'live' ? <span className="share-verified"><ShieldCheck size={15} />Link access</span> : null}</div>
         </header>
-        {mode === 'local' && privateFixture && <div className="local-preview-banner"><span className="local-preview-banner__mark"><RotateCcw size={14} /></span><span><strong>Local preview.</strong> Itinerary edits and sample expenses are saved only in this browser until the shared Sheet is connected.</span>{canInitialize && <button onClick={() => void initializeSheet()} disabled={initializing}>{initializing ? 'Setting up…' : 'Initialize shared Sheet'}</button>}</div>}
+        {mode === 'local' && privateFixture && <div className="local-preview-banner"><span className="local-preview-banner__mark"><RotateCcw size={14} /></span><span><strong>Local preview.</strong> Private trip details and ledger edits stay in this browser until the shared Sheet is connected.</span>{canInitialize && <button onClick={() => void initializeSheet()} disabled={initializing}>{initializing ? 'Setting up…' : 'Initialize shared Sheet'}</button>}</div>}
         {mode === 'error' && <div className="local-preview-banner local-preview-banner--error"><span className="local-preview-banner__mark"><CircleHelp size={14} /></span><span><strong>Shared link needs attention.</strong> {modeMessage} Local sample data is still visible; edits are paused.</span></div>}
 
         {page === 'overview' && <Overview trip={trip} memberCount={members.length} onItinerary={() => navigate('itinerary')} onMoney={() => navigate('money')} />}

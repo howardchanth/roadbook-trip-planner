@@ -227,7 +227,7 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
     }
   }
 
-  const storageLabel = mode === 'live' ? 'Shared spreadsheet' : mode === 'error' ? 'Connection needs attention' : 'Local demo';
+  const storageLabel = mode === 'live' ? 'Shared spreadsheet' : mode === 'error' ? 'Connection needs attention' : 'Local preview';
 
   return (
     <div className="page page--money">
@@ -238,10 +238,10 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
 
       <div className={`sync-banner sync-banner--${mode}`} role="status">
         <span className="sync-banner__light" />
-        <div><strong>{storageLabel}</strong><span>{mode === 'live' ? 'Changes save to the shared Sheet. Open pages check for updates automatically.' : mode === 'error' ? error || 'The live connection did not load. Refresh after checking the invite and endpoint.' : 'Sample entries only. Changes stay in this browser and do not touch the shared Sheet.'}</span></div>
+        <div><strong>{storageLabel}</strong><span>{mode === 'live' ? 'Changes save to the shared Sheet. Open pages check for updates automatically.' : mode === 'error' ? error || 'The live connection did not load. Refresh after checking the invite and endpoint.' : 'Private trip entries stay in this browser and do not touch the shared Sheet until it is connected.'}</span></div>
         {mode === 'live' && inviteAvailable && <button className="sync-banner__action" onClick={() => void onCopyInvite()}>Copy invite link <ArrowUpRight size={14} /></button>}
         {mode === 'local' && canInitialize && <button className="sync-banner__action" onClick={() => void onInitialize()} disabled={initializing}>{initializing ? 'Setting up…' : 'Initialize shared Sheet'} <ArrowUpRight size={14} /></button>}
-        {mode === 'local' && !canInitialize && <button className="sync-banner__action" onClick={() => { if (window.confirm('Reset the local sample expenses? This clears only this browser’s demo ledger.')) onReset(); }}>Reset sample entries <RotateCcw size={14} /></button>}
+        {mode === 'local' && !canInitialize && <button className="sync-banner__action" onClick={() => { if (window.confirm('Reset the local entries? This clears only this browser’s local ledger.')) onReset(); }}>Reset local entries <RotateCcw size={14} /></button>}
       </div>
       {mode === 'error' && <p className="connection-error" role="alert">{error}</p>}
       {toast && <p className="ledger-toast" role="status">{toast}</p>}

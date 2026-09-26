@@ -48,7 +48,7 @@ function DayDetail({ day, index, alert }: { day: TripDay; index: number; alert?:
     <div className="day-detail">
       <div className="day-detail__left">
         <div className="day-detail__section"><span className="day-detail__title"><MapPin size={15} /> The plan</span><ul>{day.plan.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{item}</li>)}</ul></div>
-        <div className="day-detail__section day-detail__stay"><span className="day-detail__title"><BedDouble size={15} /> Where to stay</span><strong>{day.stay}</strong>{day.stayNote && <p>{day.stayNote}</p>}</div>
+        <div className="day-detail__section day-detail__stay"><span className="day-detail__title"><BedDouble size={15} /> Where to stay</span><strong>{day.stay}</strong>{day.stayNote && <p>{day.stayNote}</p>}{day.stayUrl && <a href={day.stayUrl} target="_blank" rel="noreferrer">Open Airbnb booking <ExternalLink size={13} /></a>}</div>
       </div>
       <div className="day-detail__meals">
         <span className="day-detail__title"><Utensils size={15} /> Meal ideas · not reservations</span>
@@ -196,7 +196,7 @@ export function Itinerary({ trip, members, mode, error: connectionError, onSaveD
       <header className="page-title-row page-title-row--itinerary">
         <div>
           <h1>The days between here and there.</h1>
-          <p>One loose plan for the road. Hotels and meals stay tentative until the group confirms them.</p>
+          <p>Booked stays are marked clearly; the driving and meal ideas remain easy to adjust.</p>
         </div>
         <div className="itinerary-summary"><strong>{trip.days.length} dates</strong><span>{formatDate(trip.startDate)} — {formatDate(trip.lastTripDate)}</span></div>
       </header>
@@ -207,14 +207,27 @@ export function Itinerary({ trip, members, mode, error: connectionError, onSaveD
         <button aria-label="Open trip overview" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><ArrowUpRight size={17} /></button>
       </div>
 
+      <nav className="itinerary-day-nav" aria-label="Jump to a trip day">
+        <span className="itinerary-day-nav__label">Jump to a date</span>
+        <div className="itinerary-day-nav__scroller">
+          {trip.days.map((day) => (
+            <button type="button" className={openDay === day.id ? 'itinerary-day-nav__item itinerary-day-nav__item--active' : 'itinerary-day-nav__item'} key={day.id} onClick={() => { setOpenDay(day.id); setEditingDayId(''); setDraft(null); document.getElementById(`day-${day.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+              <span>{formatDate(day.date, 'short')}</span>
+              <strong>{day.city.split('→')[0].trim()}</strong>
+              {day.stayUrl && <i aria-label="Booked stay" title="Booked stay" />}
+            </button>
+          ))}
+        </div>
+      </nav>
+
       <div className="itinerary-list">
         {trip.days.map((day, index) => {
           const expanded = openDay === day.id;
           const editing = editingDayId === day.id && draft;
-          const statusText = day.status === 'watch' ? 'Needs a check' : 'Tentative';
+          const statusText = day.stayUrl ? 'Booked stay' : day.status === 'watch' ? 'Needs a check' : 'Plan in progress';
           const alert = day.status === 'watch' ? trip.alerts[0] : undefined;
           return (
-            <article className={`itinerary-day${expanded ? ' itinerary-day--open' : ''}${day.status === 'watch' ? ' itinerary-day--watch' : ''}`} key={day.id}>
+            <article id={`day-${day.id}`} className={`itinerary-day${expanded ? ' itinerary-day--open' : ''}${day.status === 'watch' ? ' itinerary-day--watch' : ''}`} key={day.id}>
               <div className="itinerary-day__date">
                 <span>{formatDate(day.date, 'weekday')}</span>
                 <strong>{formatDate(day.date, 'short')}</strong>

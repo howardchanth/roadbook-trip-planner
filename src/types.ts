@@ -22,6 +22,7 @@ export interface TripDay {
   plan: string[];
   stay: string;
   stayNote?: string;
+  stayUrl?: string;
   meals: FoodStop[];
   status?: 'tentative' | 'watch';
 }
@@ -96,4 +97,5 @@ export interface TripSnapshot {
 export interface TripSource {
   trip: TripProfile;
   members: Traveler[];
+  expenses?: Expense[];
 }

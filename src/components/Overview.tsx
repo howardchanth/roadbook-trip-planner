@@ -20,6 +20,8 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
     return regions;
   }, []).join(' → ');
   const activeDay = trip.days[progress.activeDayIndex];
+  const confirmedStayNames = Array.from(new Set(trip.days.filter((day) => day.stayUrl).map((day) => day.stay)));
+  const confirmedNightCount = trip.days.filter((day) => day.stayUrl).length;
   const countdown = progress.phase === 'upcoming'
     ? progress.daysUntilStart === 0 ? 'Today' : `${progress.daysUntilStart} days`
     : progress.phase === 'returned' ? 'Complete' : `${progress.completedDays} of ${progress.totalDays} days`;
@@ -36,6 +38,11 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
           <span><Compass size={16} />{memberCount} travelers</span>
         </div>
       </header>
+
+      <div className="overview-quick-actions" aria-label="Trip shortcuts">
+        <button type="button" onClick={onItinerary}><CalendarDays size={16} /><span><strong>Plan by day</strong><small>Schedule, stays, meals</small></span><ArrowUpRight size={15} /></button>
+        <button type="button" onClick={onMoney}><CircleDollarSign size={16} /><span><strong>Update the ledger</strong><small>Record a shared cost</small></span><ArrowUpRight size={15} /></button>
+      </div>
 
       <div className="overview-grid">
         <RouteMap trip={trip} activeDayIndex={progress.activeDayIndex} />
@@ -69,9 +76,9 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
           <div className="plan-pulse__icon"><CircleDollarSign size={18} /></div>
           <div><span>Working group budget</span><strong>{formatAmount(trip.budget.target, trip.budget.currency)}</strong><small>{formatAmount(trip.budget.low, trip.budget.currency)}–{formatAmount(trip.budget.high, trip.budget.currency)} estimated · {trip.budget.note}</small></div>
         </div>
-        <div className="plan-pulse__cell">
+          <div className="plan-pulse__cell">
           <div className="plan-pulse__icon"><Route size={18} /></div>
-          <div><span>Route shape</span><strong>{routeShape || 'Group route'}</strong><small>{trip.days.length} trip dates · tentative schedule</small></div>
+          <div><span>Route shape</span><strong>{routeShape || 'Group route'}</strong><small>{trip.days.length} trip dates · {confirmedNightCount ? `${confirmedNightCount} booked nights · ${confirmedStayNames.length} stays confirmed` : 'lodging to confirm'}</small></div>
         </div>
         <button className="plan-pulse__cell plan-pulse__cell--button" onClick={onMoney}>
           <div className="plan-pulse__icon"><ArrowUpRight size={18} /></div>
@@ -105,7 +112,7 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
             </article>
           ))}
         </div>
-        <div className="booking-note"><TimerReset size={15} /><span>Flight prices and hotel options are planning references only; nothing here is marked booked.</span><Check size={15} /></div>
+        <div className="booking-note"><TimerReset size={15} /><span>{confirmedStayNames.length} lodging bookings are linked in the day plan; flight details still show their confirmation state.</span><Check size={15} /></div>
       </section>
     </div>
   );

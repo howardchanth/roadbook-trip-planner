@@ -161,6 +161,56 @@ a:hover { color: #173e36; }
 .route-stop strong { overflow: hidden; color: #354a3e; font-size: 9px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .route-stop span:last-child { color: #758275; font-size: 8px; }
 
+/* The route is a planning aid first: keep it crisp, quiet, and readable on every device. */
+.route-panel__eyebrow { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 7px; color: #6b806b; font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.route-panel__eyebrow svg { color: #7b936a; }
+.route-map--flat { height: 294px; padding: 10px; background: #eef3e9; border-color: #d5e0d2; }
+.route-map--flat::after { display: none; }
+.route-map__svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.route-map__svg text { fill: #375343; font-family: var(--body); font-size: 2.5px; font-weight: 700; letter-spacing: .02em; paint-order: stroke; stroke: #eef3e9; stroke-width: .8px; stroke-linejoin: round; }
+.route-map__svg .route-map__caption { fill: #728474; font-size: 2.2px; font-weight: 500; stroke: none; paint-order: normal; }
+.route-map__point { transition: transform 180ms ease; transform-origin: center; }
+.route-map__point--active { filter: drop-shadow(0 1.5px 1px rgba(30, 59, 46, .2)); }
+.route-map__legend { position: absolute; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 10px; padding: 6px 8px; color: #5d715f; font-size: 8px; background: rgba(250, 252, 247, .88); border: 1px solid #d4dfd2; border-radius: 6px; }
+.route-map__legend span { display: inline-flex; align-items: center; gap: 4px; }
+.route-map__legend-dot { width: 7px; height: 3px; display: inline-block; background: #284d40; border-radius: 999px; }
+.route-map__legend-dot--traveled { background: #c18a3d; }
+.route-map__current { position: absolute; top: 12px; left: 12px; display: grid; grid-template-columns: 16px 1fr; gap: 0 5px; align-items: center; padding: 6px 8px; color: #59715d; font-size: 8px; background: rgba(250, 252, 247, .9); border: 1px solid #d4dfd2; border-radius: 6px; }
+.route-map__current svg { grid-row: 1 / span 2; color: #6e8a62; }
+.route-map__current strong { color: #294c3c; font-size: 9px; }
+.route-panel__foot { display: flex; align-items: center; gap: 6px; padding: 0 16px 13px; color: #7b897e; font-size: 8px; line-height: 1.35; }
+.route-panel__foot svg { flex: 0 0 auto; color: #7b916d; }
+
+.overview-quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: -5px 0 15px; }
+.overview-quick-actions button { display: flex; min-height: 52px; align-items: center; gap: 9px; padding: 9px 12px; color: #3d5b49; text-align: left; background: #edf3e9; border: 1px solid #d5e1d2; border-radius: 8px; cursor: pointer; }
+.overview-quick-actions button:hover { background: #e5efdf; border-color: #afc69f; }
+.overview-quick-actions button > svg:first-child { flex: 0 0 auto; color: #6c8960; }
+.overview-quick-actions button > svg:last-child { margin-left: auto; color: #7d9580; }
+.overview-quick-actions span { display: flex; flex-direction: column; gap: 2px; }
+.overview-quick-actions strong { color: #294b3b; font-size: 10px; font-weight: 700; }
+.overview-quick-actions small { color: #6e806f; font-size: 8px; }
+
+.itinerary-day-nav { display: flex; align-items: center; gap: 12px; padding: 11px 12px; margin: 0 0 14px; background: #edf2ea; border: 1px solid #d8e2d6; border-radius: 9px; }
+.itinerary-day-nav__label { flex: 0 0 auto; color: #657867; font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.itinerary-day-nav__scroller { display: flex; min-width: 0; flex: 1; gap: 5px; overflow-x: auto; padding-bottom: 1px; scrollbar-width: thin; }
+.itinerary-day-nav__item { position: relative; display: flex; min-width: 72px; flex-direction: column; gap: 2px; padding: 6px 8px; color: #657568; text-align: left; background: #f9fbf6; border: 1px solid #d7e0d5; border-radius: 6px; cursor: pointer; }
+.itinerary-day-nav__item:hover { border-color: #a7bda1; }
+.itinerary-day-nav__item--active { color: #294c3c; background: #dfead6; border-color: #afc599; box-shadow: inset 0 -2px 0 #7f9c67; }
+.itinerary-day-nav__item span { font-size: 8px; }
+.itinerary-day-nav__item strong { overflow: hidden; font-size: 9px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.itinerary-day-nav__item i { position: absolute; top: 6px; right: 6px; width: 5px; height: 5px; background: #7b9a5e; border-radius: 50%; }
+
+@media (max-width: 760px) {
+  .route-map--flat { height: min(67vw, 300px); min-height: 250px; padding: 7px; }
+  .route-map__legend { right: 9px; bottom: 9px; font-size: 7px; }
+  .route-map__current { top: 9px; left: 9px; }
+  .route-panel__foot { align-items: flex-start; padding: 0 12px 12px; font-size: 8px; }
+  .itinerary-day-nav { align-items: flex-start; flex-direction: column; gap: 7px; padding: 10px; }
+  .itinerary-day-nav__scroller { width: 100%; }
+  .itinerary-day-nav__item { min-width: 82px; }
+  .overview-quick-actions { grid-template-columns: minmax(0, 1fr); gap: 7px; margin: -2px 0 12px; }
+}
+
 .journey-panel { display: flex; min-height: 416px; flex-direction: column; padding: 21px 22px 15px; background: #e8eee5; border: 1px solid #d7e0d6; border-radius: var(--radius); }
 .journey-panel__topline { display: flex; align-items: center; gap: 7px; color: #54715d; font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
 .live-dot { width: 7px; height: 7px; background: #7d9e58; border-radius: 50%; box-shadow: 0 0 0 3px #d2e0c4; }
@@ -311,6 +361,8 @@ a:hover { color: #173e36; }
 .day-detail__section li::marker { color: #90a476; }
 .day-detail__stay strong { color: #3c5145; font-size: 10px; font-weight: 600; }
 .day-detail__stay p { max-width: 62ch; margin: 0; color: #6c7b70; font-size: 9px; line-height: 1.55; }
+.day-detail__stay a { display: inline-flex; align-items: center; gap: 5px; color: #4d7056; font-size: 9px; font-weight: 600; }
+.day-detail__stay a:hover { color: #294b3b; }
 .day-detail__meals { display: flex; flex-direction: column; gap: 0; }
 .meal-line { display: grid; grid-template-columns: 67px minmax(0, 1fr) 23px; align-items: start; gap: 8px; padding: 9px 0; border-bottom: 1px solid #dce3dc; }
 .meal-line:first-of-type { margin-top: 2px; }

@@ -97,17 +97,33 @@ function freshSampleExpenses(members: Traveler[]): Expense[] {
   });
 }
 
-export function loadLocalLedger(tripId: string, members: Traveler[]): LocalLedger {
+export function loadLocalLedger(tripId: string, members: Traveler[], seedExpenses: Expense[] = []): LocalLedger {
   try {
     const raw = window.localStorage.getItem(storageKey(tripId));
     if (raw) {
       const parsed = JSON.parse(raw) as LocalLedger;
-      if (Array.isArray(parsed.expenses) && Array.isArray(parsed.history)) return parsed;
+      if (Array.isArray(parsed.expenses) && Array.isArray(parsed.history)) {
+        // Replace an untouched sample ledger when the private fixture gains
+        // authoritative booked costs; preserve later local edits.
+        if (seedExpenses.length && parsed.history.length === 0) return { expenses: seedExpenses, history: [] };
+        // A browser can retain the starter sample after the private trip
+        // fixture is loaded. Remove only those marked demo rows so the
+        // authoritative booked costs are the first entries users see while
+        // preserving every later user-created expense.
+        const existingExpenses = seedExpenses.length
+          ? parsed.expenses.filter((expense) => !expense.id.startsWith('demo-'))
+          : parsed.expenses;
+        const known = new Set(existingExpenses.map((expense) => expense.id));
+        const missing = seedExpenses.filter((expense) => !known.has(expense.id));
+        return missing.length || existingExpenses.length !== parsed.expenses.length
+          ? { ...parsed, expenses: [...missing, ...existingExpenses] }
+          : parsed;
+      }
     }
   } catch {
     // Ignore malformed browser storage and restore the marked sample ledger.
   }
-  return { expenses: freshSampleExpenses(members), history: [] };
+  return { expenses: seedExpenses.length ? seedExpenses : freshSampleExpenses(members), history: [] };
 }
 
 export function saveLocalLedger(tripId: string, ledger: LocalLedger): void {
@@ -131,8 +147,8 @@ export function saveLocalMembers(tripId: string, members: Traveler[]): void {
   window.localStorage.setItem(memberStorageKey(tripId), JSON.stringify(members));
 }
 
-export function resetLocalLedger(tripId: string, members: Traveler[]): LocalLedger {
-  const ledger = { expenses: freshSampleExpenses(members), history: [] };
+export function resetLocalLedger(tripId: string, members: Traveler[], seedExpenses: Expense[] = []): LocalLedger {
+  const ledger = { expenses: seedExpenses.length ? seedExpenses : freshSampleExpenses(members), history: [] };
   saveLocalLedger(tripId, ledger);
   return ledger;
 }

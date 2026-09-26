@@ -154,6 +154,8 @@ function updateDay_(rawDay, actor, requestId) {
     : [];
   const stay = cleanText_(rawDay && rawDay.stay, 180);
   const stayNote = cleanText_(rawDay && rawDay.stayNote, 600);
+  const stayUrl = cleanText_(rawDay && rawDay.stayUrl, 300);
+  if (stayUrl && !/^https:\/\/[^\s]+$/i.test(stayUrl)) throw new Error('Lodging links must use HTTPS.');
   const meals = Array.isArray(rawDay && rawDay.meals)
     ? rawDay.meals.slice(0, 8).map(function (meal) {
         const url = cleanText_(meal && meal.url, 300);
@@ -174,6 +176,7 @@ function updateDay_(rawDay, actor, requestId) {
     plan: plan,
     stay: stay,
     stayNote: stayNote,
+    stayUrl: stayUrl,
     meals: meals,
   });
   sheet.getRange(rowNumber, 3).setValue(JSON.stringify(after));
