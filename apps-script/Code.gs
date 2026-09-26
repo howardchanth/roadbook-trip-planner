@@ -565,10 +565,20 @@ function readHistory_() {
 
 function expenseFromRow_(row) {
   return {
-    id: String(row[0]), date: String(row[1]), description: String(row[2]), category: String(row[3]), amountCents: Number(row[4]),
+    id: String(row[0]), date: sheetDate_(row[1]), description: String(row[2]), category: String(row[3]), amountCents: Number(row[4]),
     currency: String(row[5]), payerId: String(row[6]), beneficiaryIds: JSON.parse(String(row[7] || '[]')),
     createdAt: String(row[8]), createdBy: String(row[9]), updatedAt: row[10] ? String(row[10]) : undefined, updatedBy: row[11] ? String(row[11]) : undefined,
   };
+}
+
+function sheetDate_(value) {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+  const text = String(value || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  const parsed = Date.parse(text);
+  return isFinite(parsed) ? Utilities.formatDate(new Date(parsed), Session.getScriptTimeZone(), 'yyyy-MM-dd') : text.slice(0, 10);
 }
 
 function expenseRow_(expense) {
