@@ -2,7 +2,6 @@ import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { ArrowUpRight, Check, ChevronDown, CircleHelp, FilePlus2, Plus, RotateCcw, Trash2, Users, WalletCards, X } from 'lucide-react';
 import { balancesByCurrency, expenseNet, formatMoney, splitExpense, totalForCurrency } from '../lib/money';
 import { formatDate } from '../lib/dates';
-import { isLikelyDuplicateExpense } from '../lib/storage';
 import type { Currency, Expense, HistoryEntry, Traveler } from '../types';
 
 export type StorageMode = 'local' | 'live' | 'error';
@@ -186,9 +185,6 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
 
   async function saveExpense(expense: Expense) {
     if (saveInFlightRef.current) return;
-    if (!editing && isLikelyDuplicateExpense(expense, expenses)) {
-      throw new Error('A matching transaction is already in the ledger. Edit that entry instead of adding it again.');
-    }
     saveInFlightRef.current = true;
     setBusy(true);
     try {

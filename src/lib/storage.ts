@@ -32,65 +32,23 @@ interface LedgerResponse {
 const endpoint = import.meta.env.VITE_LEDGER_ENDPOINT?.trim() ?? '';
 let cachedInviteToken: string | null | undefined;
 
-const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
-
-function expenseFingerprint(expense: Expense): string {
-  const beneficiaries = [...new Set(expense.beneficiaryIds)].sort().join(',');
-  return [
-    expense.date,
-    expense.description.trim().toLocaleLowerCase(),
-    expense.category.trim().toLocaleLowerCase(),
-    expense.amountCents,
-    expense.currency,
-    expense.payerId,
-    beneficiaries,
-  ].join('|');
-}
-
-function expenseTime(expense: Expense): number | null {
-  const timestamp = Date.parse(expense.createdAt);
-  return Number.isFinite(timestamp) ? timestamp : null;
-}
-
 /**
- * Keep the ledger stable when a retry or an old Sheet row has been stored twice.
- * Exact IDs are always duplicates. Matching rows are treated as duplicates only
- * when they were created within a short window, so two intentional costs with
- * the same description on different days remain separate.
+ * Keep the ledger stable when the same Sheet row is returned twice. Transaction
+ * IDs are the authoritative identity; two legitimate costs can share the same
+ * description, amount, date, and payer, so content-based filtering would hide
+ * real entries.
  */
 export function dedupeExpenses(expenses: Expense[]): Expense[] {
   const seenIds = new Set<string>();
-  const seenFingerprints = new Map<string, Expense>();
   const unique: Expense[] = [];
 
   for (const expense of expenses) {
     if (!expense || typeof expense.id !== 'string' || !expense.id.trim() || seenIds.has(expense.id)) continue;
     seenIds.add(expense.id);
-
-    const fingerprint = expenseFingerprint(expense);
-    const previous = seenFingerprints.get(fingerprint);
-    const currentTime = expenseTime(expense);
-    const previousTime = previous ? expenseTime(previous) : null;
-    const isNearDuplicate = previous && currentTime !== null && previousTime !== null
-      ? Math.abs(currentTime - previousTime) <= DUPLICATE_WINDOW_MS
-      : false;
-    if (isNearDuplicate) continue;
-
-    seenFingerprints.set(fingerprint, expense);
     unique.push(expense);
   }
 
   return unique;
-}
-
-export function isLikelyDuplicateExpense(candidate: Expense, expenses: Expense[], ignoreId?: string): boolean {
-  const candidateFingerprint = expenseFingerprint(candidate);
-  const candidateTime = expenseTime(candidate);
-  return expenses.some((expense) => {
-    if (expense.id === ignoreId || expenseFingerprint(expense) !== candidateFingerprint) return false;
-    const existingTime = expenseTime(expense);
-    return candidateTime !== null && existingTime !== null && Math.abs(candidateTime - existingTime) <= DUPLICATE_WINDOW_MS;
-  });
 }
 
 function normalizeLedgerResponse(response: LedgerResponse): LedgerResponse {

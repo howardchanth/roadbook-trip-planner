@@ -10,6 +10,7 @@ const SHEET_NAMES = {
   expenses: 'AppExpenses',
   history: 'AppHistory',
 };
+const MONEY_POOL_SHEET_NAME = 'Money Pool';
 
 const HEADERS = {
   config: ['key', 'value'],
@@ -39,7 +40,38 @@ function setupRoadbook() {
     properties.setProperty('INVITE_TOKEN', token);
     Logger.log('Copy this private invite token now. Keep it out of the public repository: ' + token);
   }
+  organizeRoadbookTabs();
   Logger.log('Roadbook tabs are ready. Existing planning tabs were left untouched.');
+}
+
+/** Keep the human review tab near the front and internal App* tabs at the end. */
+function organizeRoadbookTabs() {
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if (!spreadsheetId) throw new Error('Spreadsheet is not configured.');
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const moneyPool = spreadsheet.getSheetByName(MONEY_POOL_SHEET_NAME);
+  if (moneyPool) {
+    spreadsheet.setActiveSheet(moneyPool);
+    spreadsheet.moveActiveSheet(1);
+  }
+  [SHEET_NAMES.config, SHEET_NAMES.days, SHEET_NAMES.members, SHEET_NAMES.expenses, SHEET_NAMES.history].forEach(function (name) {
+    const sheet = spreadsheet.getSheetByName(name);
+    if (!sheet) return;
+    spreadsheet.setActiveSheet(sheet);
+    spreadsheet.moveActiveSheet(spreadsheet.getNumSheets());
+  });
+  SpreadsheetApp.flush();
+}
+
+/**
+ * Import rows from the existing Money Pool tab into AppExpenses once. The
+ * read path also includes the source tab, so this is optional for display but
+ * keeps the two spreadsheet views physically aligned for future edits.
+ */
+function syncMoneyPoolLedger() {
+  const imported = syncMoneyPoolToAppExpenses_();
+  SpreadsheetApp.flush();
+  Logger.log('Imported ' + imported + ' Money Pool transaction(s) into AppExpenses.');
 }
 
 function doGet(event) {
@@ -118,26 +150,33 @@ function initializeTrip_(payload, actor, requestId) {
 function createExpense_(rawExpense, actor, requestId) {
   const expense = normalizeExpense_(rawExpense);
   if (findExpenseRow_(expense.id)) throw new Error('That expense ID already exists.');
-  if (hasLikelyDuplicateExpense_(expense, readExpenses_())) throw new Error('A matching expense already exists. Edit it instead of adding it again.');
+  if (findMoneyPoolTransactionRow_(expense.id)) throw new Error('That expense ID already exists in the Money Pool tab.');
   const now = new Date().toISOString();
   expense.createdAt = now;
   expense.createdBy = actor;
   sheet_(SHEET_NAMES.expenses).appendRow(expenseRow_(expense));
+  appendMoneyPoolExpense_(expense);
   appendHistory_({ requestId: requestId, entity: 'expense', entityId: expense.id, action: 'created', actor: actor, before: null, after: expense });
 }
 
 function updateExpense_(rawExpense, actor, requestId) {
   const expense = normalizeExpense_(rawExpense);
   const rowNumber = findExpenseRow_(expense.id);
-  if (!rowNumber) throw new Error('This expense no longer exists. Refresh the ledger and try again.');
-  if (hasLikelyDuplicateExpense_(expense, readExpenses_().filter(function (item) { return item.id !== expense.id; }))) throw new Error('Another matching expense already exists. Review the ledger before saving this edit.');
-  const sheet = sheet_(SHEET_NAMES.expenses);
-  const before = expenseFromRow_(sheet.getRange(rowNumber, 1, 1, HEADERS.expenses.length).getValues()[0]);
+  const moneyPoolRow = findMoneyPoolTransactionRow_(expense.id);
+  const before = readExpenses_().find(function (item) { return item.id === expense.id; });
+  if (!before || (!rowNumber && !moneyPoolRow)) throw new Error('This expense no longer exists. Refresh the ledger and try again.');
   expense.createdAt = before.createdAt;
   expense.createdBy = before.createdBy;
   expense.updatedAt = new Date().toISOString();
   expense.updatedBy = actor;
-  sheet.getRange(rowNumber, 1, 1, HEADERS.expenses.length).setValues([expenseRow_(expense)]);
+  if (rowNumber) {
+    const sheet = sheet_(SHEET_NAMES.expenses);
+    sheet.getRange(rowNumber, 1, 1, HEADERS.expenses.length).setValues([expenseRow_(expense)]);
+  } else {
+    sheet_(SHEET_NAMES.expenses).appendRow(expenseRow_(expense));
+  }
+  if (moneyPoolRow) updateMoneyPoolExpense_(moneyPoolRow, expense);
+  else appendMoneyPoolExpense_(expense);
   appendHistory_({ requestId: requestId, entity: 'expense', entityId: expense.id, action: 'edited', actor: actor, before: before, after: expense });
 }
 
@@ -187,10 +226,11 @@ function updateDay_(rawDay, actor, requestId) {
 
 function deleteExpense_(expenseId, actor, requestId) {
   const rowNumber = findExpenseRow_(String(expenseId || ''));
-  if (!rowNumber) throw new Error('This expense no longer exists. Refresh the ledger and try again.');
-  const sheet = sheet_(SHEET_NAMES.expenses);
-  const before = expenseFromRow_(sheet.getRange(rowNumber, 1, 1, HEADERS.expenses.length).getValues()[0]);
-  sheet.deleteRow(rowNumber);
+  const moneyPoolRow = findMoneyPoolTransactionRow_(String(expenseId || ''));
+  const before = readExpenses_().find(function (item) { return item.id === String(expenseId || ''); });
+  if (!before || (!rowNumber && !moneyPoolRow)) throw new Error('This expense no longer exists. Refresh the ledger and try again.');
+  if (rowNumber) sheet_(SHEET_NAMES.expenses).deleteRow(rowNumber);
+  if (moneyPoolRow) deleteMoneyPoolExpense_(moneyPoolRow);
   appendHistory_({ requestId: requestId, entity: 'expense', entityId: before.id, action: 'deleted', actor: actor, before: before, after: null });
 }
 
@@ -273,37 +313,206 @@ function readMembers_() {
 }
 
 function readExpenses_() {
+  const moneyPoolExpenses = readMoneyPoolExpenses_();
+  const appExpenses = readAppExpenses_();
+  const seenIds = {};
+  return moneyPoolExpenses.concat(appExpenses).filter(function (expense) {
+    if (!expense.id || seenIds[expense.id]) return false;
+    seenIds[expense.id] = true;
+    return true;
+  });
+}
+
+function readAppExpenses_() {
   const sheet = sheet_(SHEET_NAMES.expenses);
   if (sheet.getLastRow() < 2) return [];
   const seenIds = {};
-  const seenFingerprints = {};
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.expenses.length).getValues()
     .map(expenseFromRow_)
     .filter(function (expense) {
       if (!expense.id || seenIds[expense.id]) return false;
-      if (hasLikelyDuplicateExpense_(expense, Object.keys(seenFingerprints).map(function (key) { return seenFingerprints[key]; }))) return false;
       seenIds[expense.id] = true;
-      seenFingerprints[expenseFingerprint_(expense)] = expense;
       return true;
     });
 }
 
+function readMoneyPoolExpenses_() {
+  const sheet = moneyPoolSheet_();
+  if (!sheet) return [];
+  const values = sheet.getDataRange().getValues();
+  const headerRow = findMoneyPoolHeaderRow_(values);
+  if (headerRow < 0) return [];
+  const members = readMembers_();
+  const expenses = [];
+  for (let index = headerRow + 1; index < values.length; index += 1) {
+    const row = values[index];
+    const id = cleanText_(row[3], 100);
+    const description = cleanText_(row[4], 120);
+    const currency = String(row[5] || 'USD').trim().toUpperCase();
+    const amount = Number(row[6]);
+    const payerName = cleanText_(row[7], 48);
+    const paidFor = cleanText_(row[8], 240);
+    if (!id || !description || !isFinite(amount) || amount <= 0 || (currency !== 'USD' && currency !== 'HKD')) continue;
+    const payer = memberByName_(members, payerName);
+    if (!payer) continue;
+    const beneficiaryIds = beneficiaryIdsFromLabel_(paidFor, members);
+    if (!beneficiaryIds.length) continue;
+    const createdAt = moneyPoolTimestamp_(row[9]);
+    expenses.push({
+      id: id,
+      date: expenseDateFromId_(id, createdAt),
+      description: description,
+      category: categoryFromDescription_(description),
+      amountCents: Math.round(amount * 100),
+      currency: currency,
+      payerId: payer.id,
+      beneficiaryIds: beneficiaryIds,
+      createdAt: createdAt,
+      createdBy: payer.name,
+    });
+  }
+  return expenses;
+}
+
+function syncMoneyPoolToAppExpenses_() {
+  const appSheet = sheet_(SHEET_NAMES.expenses);
+  let imported = 0;
+  readMoneyPoolExpenses_().forEach(function (expense) {
+    if (!findExpenseRow_(expense.id)) {
+      appSheet.appendRow(expenseRow_(expense));
+      imported += 1;
+    }
+  });
+  return imported;
+}
+
+function moneyPoolSheet_() {
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if (!spreadsheetId) throw new Error('Spreadsheet is not configured.');
+  return SpreadsheetApp.openById(spreadsheetId).getSheetByName(MONEY_POOL_SHEET_NAME);
+}
+
+function findMoneyPoolHeaderRow_(values) {
+  for (let index = 0; index < values.length; index += 1) {
+    if (String(values[index][3] || '').trim().toLowerCase() === 'transaction id') return index;
+  }
+  return -1;
+}
+
+function findMoneyPoolTransactionRow_(id) {
+  const sheet = moneyPoolSheet_();
+  if (!sheet || !id) return null;
+  const values = sheet.getDataRange().getValues();
+  const headerRow = findMoneyPoolHeaderRow_(values);
+  if (headerRow < 0) return null;
+  for (let index = headerRow + 1; index < values.length; index += 1) {
+    if (String(values[index][3] || '').trim() === String(id)) return index + 1;
+  }
+  return null;
+}
+
+function appendMoneyPoolExpense_(expense) {
+  const sheet = moneyPoolSheet_();
+  if (!sheet || findMoneyPoolTransactionRow_(expense.id)) return;
+  const values = sheet.getDataRange().getValues();
+  const headerRow = findMoneyPoolHeaderRow_(values);
+  if (headerRow < 0) return;
+  let lastTransactionRow = headerRow + 1;
+  for (let index = headerRow + 1; index < values.length; index += 1) {
+    if (String(values[index][3] || '').trim()) lastTransactionRow = index + 1;
+  }
+  const rowNumber = lastTransactionRow + 1;
+  sheet.getRange(rowNumber, 4, 1, 7).setValues([[
+    expense.id,
+    expense.description,
+    expense.currency,
+    expense.amountCents / 100,
+    memberName_(expense.payerId),
+    paidForLabel_(expense.beneficiaryIds),
+    new Date(expense.createdAt || new Date().toISOString()),
+  ]]);
+}
+
+function updateMoneyPoolExpense_(rowNumber, expense) {
+  const sheet = moneyPoolSheet_();
+  if (!sheet || !rowNumber) return;
+  sheet.getRange(rowNumber, 4, 1, 7).setValues([[
+    expense.id,
+    expense.description,
+    expense.currency,
+    expense.amountCents / 100,
+    memberName_(expense.payerId),
+    paidForLabel_(expense.beneficiaryIds),
+    new Date(expense.createdAt || new Date().toISOString()),
+  ]]);
+}
+
+function deleteMoneyPoolExpense_(rowNumber) {
+  const sheet = moneyPoolSheet_();
+  if (sheet && rowNumber) sheet.deleteRow(rowNumber);
+}
+
+function memberByName_(members, name) {
+  const value = String(name || '').trim().toLowerCase();
+  return members.find(function (member) { return member.id.toLowerCase() === value || member.name.toLowerCase() === value; }) || null;
+}
+
+function memberName_(memberId) {
+  const member = readMembers_().find(function (item) { return item.id === String(memberId); });
+  return member ? member.name : String(memberId);
+}
+
+function beneficiaryIdsFromLabel_(label, members) {
+  const value = String(label || '').trim();
+  if (!value || /^(all|everyone)$/i.test(value)) return members.map(function (member) { return member.id; });
+  const names = value.split(/,|;|\band\b/i).map(function (part) { return part.trim().toLowerCase(); }).filter(Boolean);
+  return members.filter(function (member) { return names.indexOf(member.id.toLowerCase()) >= 0 || names.indexOf(member.name.toLowerCase()) >= 0; }).map(function (member) { return member.id; });
+}
+
+function paidForLabel_(beneficiaryIds) {
+  const members = readMembers_();
+  if (members.length && members.every(function (member) { return beneficiaryIds.indexOf(member.id) >= 0; })) return 'All';
+  return members.filter(function (member) { return beneficiaryIds.indexOf(member.id) >= 0; }).map(function (member) { return member.name; }).join(', ');
+}
+
+function moneyPoolTimestamp_(value) {
+  if (value instanceof Date && !isNaN(value.getTime())) return value.toISOString();
+  const text = String(value || '').trim();
+  const parsed = Date.parse(text);
+  return isFinite(parsed) ? new Date(parsed).toISOString() : new Date().toISOString();
+}
+
+function expenseDateFromId_(id, createdAt) {
+  const match = String(id).match(/(20\d{2}-\d{2}-\d{2})$/);
+  if (match) return match[1];
+  return String(createdAt).slice(0, 10);
+}
+
+function categoryFromDescription_(description) {
+  if (/airbnb|hotel|lodging|stay/i.test(description)) return 'Lodging';
+  if (/flight|airline|taxi|uber|lyft|fuel|gas|parking|rental|transport/i.test(description)) return 'Transport';
+  if (/lunch|dinner|breakfast|meal|restaurant|food|coffee/i.test(description)) return 'Meals';
+  if (/ticket|museum|tour|park|activity/i.test(description)) return 'Activities';
+  return 'Other';
+}
+
 /**
  * Run this once from the Apps Script editor if the AppExpenses tab already
- * contains duplicate rows. It removes only repeated IDs or matching entries
- * created within the duplicate-protection window, keeping the first row.
+ * contains duplicate rows. It removes only repeated transaction IDs, keeping
+ * the first row. Different transactions with identical amounts and labels are
+ * intentionally preserved.
  */
 function repairExpenseDuplicates() {
   const sheet = sheet_(SHEET_NAMES.expenses);
   if (sheet.getLastRow() < 2) return;
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.expenses.length).getValues();
-  const kept = [];
+  const seenIds = {};
   const duplicateRows = [];
   rows.forEach(function (row, index) {
     const expense = expenseFromRow_(row);
-    const duplicate = !expense.id || kept.some(function (existing) { return existing.id === expense.id || hasLikelyDuplicateExpense_(expense, [existing]); });
+    const duplicate = !expense.id || seenIds[expense.id];
     if (duplicate) duplicateRows.push(index + 2);
-    else kept.push(expense);
+    else seenIds[expense.id] = true;
   });
   for (let index = duplicateRows.length - 1; index >= 0; index -= 1) sheet.deleteRow(duplicateRows[index]);
   SpreadsheetApp.flush();
@@ -327,24 +536,6 @@ function expenseFromRow_(row) {
 
 function expenseRow_(expense) {
   return [expense.id, expense.date, expense.description, expense.category, expense.amountCents, expense.currency, expense.payerId, JSON.stringify(expense.beneficiaryIds), expense.createdAt, expense.createdBy, expense.updatedAt || '', expense.updatedBy || ''];
-}
-
-const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
-
-function expenseFingerprint_(expense) {
-  const beneficiaries = expense.beneficiaryIds.slice().sort().join(',');
-  return [expense.date, expense.description.toLowerCase(), expense.category.toLowerCase(), expense.amountCents, expense.currency, expense.payerId, beneficiaries].join('|');
-}
-
-function hasLikelyDuplicateExpense_(candidate, expenses) {
-  const candidateTime = Date.parse(candidate.createdAt || '');
-  if (!isFinite(candidateTime)) return false;
-  const fingerprint = expenseFingerprint_(candidate);
-  return expenses.some(function (expense) {
-    if (expense.id === candidate.id || expenseFingerprint_(expense) !== fingerprint) return false;
-    const existingTime = Date.parse(expense.createdAt || '');
-    return isFinite(existingTime) && Math.abs(candidateTime - existingTime) <= DUPLICATE_WINDOW_MS;
-  });
 }
 
 function historyFromRow_(row) {
