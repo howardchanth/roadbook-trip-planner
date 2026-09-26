@@ -23,6 +23,12 @@ interface MoneyPoolProps {
   inviteAvailable: boolean;
 }
 
+function formatLedgerTime(value: string | undefined): string {
+  const date = new Date(String(value ?? ''));
+  if (Number.isNaN(date.getTime())) return 'Time unavailable';
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date);
+}
+
 function makeId(prefix: string): string {
   return `${prefix}-${window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`}`;
 }
@@ -156,8 +162,8 @@ function ExpenseBreakdown({ expense, members, history }: { expense: Expense; mem
       <div className="beneficiary-note"><span>Paid for</span><strong>{beneficiaryNames.join(', ') || 'No travelers selected'}</strong></div>
       <div className="expense-history">
         <span className="expense-history__title">Change history</span>
-        {relatedHistory.length ? relatedHistory.map((entry) => <div className="expense-history__line" key={entry.id}><span>{entry.action === 'created' ? 'Added' : entry.action === 'edited' ? 'Edited' : 'Removed'} by {entry.actor}</span><time>{new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(entry.at))}</time></div>) : <div className="expense-history__line"><span>Added by {expense.createdBy}</span><time>{new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(expense.createdAt))}</time></div>}
-        {expense.updatedBy && !relatedHistory.some((entry) => entry.action === 'edited') && <div className="expense-history__line"><span>Last edited by {expense.updatedBy}</span><time>{expense.updatedAt ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(expense.updatedAt)) : ''}</time></div>}
+        {relatedHistory.length ? relatedHistory.map((entry) => <div className="expense-history__line" key={entry.id}><span>{entry.action === 'created' ? 'Added' : entry.action === 'edited' ? 'Edited' : 'Removed'} by {entry.actor}</span><time>{formatLedgerTime(entry.at)}</time></div>) : <div className="expense-history__line"><span>Added by {expense.createdBy}</span><time>{formatLedgerTime(expense.createdAt)}</time></div>}
+        {expense.updatedBy && !relatedHistory.some((entry) => entry.action === 'edited') && <div className="expense-history__line"><span>Last edited by {expense.updatedBy}</span><time>{formatLedgerTime(expense.updatedAt)}</time></div>}
       </div>
     </div>
   );

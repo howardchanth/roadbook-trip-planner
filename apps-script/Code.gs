@@ -291,6 +291,9 @@ function readData_() {
   let trip = null;
   if (storedTrip) {
     trip = JSON.parse(storedTrip);
+    trip.startDate = sheetDate_(trip.startDate);
+    trip.lastTripDate = sheetDate_(trip.lastTripDate);
+    trip.returnArrivalDate = sheetDate_(trip.returnArrivalDate);
     trip.days = readDays_();
   }
   return {
@@ -304,7 +307,11 @@ function readData_() {
 function readDays_() {
   const sheet = sheet_(SHEET_NAMES.days);
   if (sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.days.length).getValues().map(function (row) { return JSON.parse(String(row[2])); });
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.days.length).getValues().map(function (row) {
+    const day = JSON.parse(String(row[2]));
+    day.date = sheetDate_(day.date || row[1]);
+    return day;
+  });
 }
 
 function readMembers_() {
@@ -564,10 +571,12 @@ function readHistory_() {
 }
 
 function expenseFromRow_(row) {
+  const date = sheetDate_(row[1]);
+  const createdAt = safeDateTime_(row[8], date ? date + 'T12:00:00.000Z' : '');
   return {
-    id: String(row[0]), date: sheetDate_(row[1]), description: String(row[2]), category: String(row[3]), amountCents: Number(row[4]),
+    id: String(row[0]), date: date, description: String(row[2]), category: String(row[3]), amountCents: Number(row[4]),
     currency: String(row[5]), payerId: String(row[6]), beneficiaryIds: JSON.parse(String(row[7] || '[]')),
-    createdAt: String(row[8]), createdBy: String(row[9]), updatedAt: row[10] ? String(row[10]) : undefined, updatedBy: row[11] ? String(row[11]) : undefined,
+    createdAt: createdAt, createdBy: String(row[9]), updatedAt: row[10] ? safeDateTime_(row[10], '') : undefined, updatedBy: row[11] ? String(row[11]) : undefined,
   };
 }
 
@@ -581,12 +590,21 @@ function sheetDate_(value) {
   return isFinite(parsed) ? Utilities.formatDate(new Date(parsed), Session.getScriptTimeZone(), 'yyyy-MM-dd') : text.slice(0, 10);
 }
 
+function safeDateTime_(value, fallback) {
+  const fallbackValue = String(fallback || '');
+  if (value instanceof Date && !isNaN(value.getTime())) return value.toISOString();
+  const text = String(value || '').trim();
+  if (!text) return fallbackValue;
+  const parsed = Date.parse(text);
+  return isFinite(parsed) ? new Date(parsed).toISOString() : fallbackValue;
+}
+
 function expenseRow_(expense) {
   return [expense.id, expense.date, expense.description, expense.category, expense.amountCents, expense.currency, expense.payerId, JSON.stringify(expense.beneficiaryIds), expense.createdAt, expense.createdBy, expense.updatedAt || '', expense.updatedBy || ''];
 }
 
 function historyFromRow_(row) {
-  return { id: String(row[0]), requestId: String(row[1]), entity: String(row[2]), entityId: String(row[3]), action: String(row[4]), actor: String(row[5]), at: String(row[6]), before: row[7] ? JSON.parse(String(row[7])) : undefined, after: row[8] ? JSON.parse(String(row[8])) : undefined };
+  return { id: String(row[0]), requestId: String(row[1]), entity: String(row[2]), entityId: String(row[3]), action: String(row[4]), actor: String(row[5]), at: safeDateTime_(row[6], new Date().toISOString()), before: row[7] ? JSON.parse(String(row[7])) : undefined, after: row[8] ? JSON.parse(String(row[8])) : undefined };
 }
 
 function appendHistory_(entry) {

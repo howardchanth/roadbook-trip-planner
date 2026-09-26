@@ -1,7 +1,10 @@
 import type { TripProfile } from '../types';
 
-export function dateAtNoon(dateString: string): Date {
-  return new Date(`${dateString}T12:00:00`);
+export function dateAtNoon(dateString: string): Date | null {
+  const value = String(dateString ?? '').trim();
+  if (!value) return null;
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00` : value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export function formatDate(dateString: string, format: 'long' | 'short' | 'weekday' = 'long'): string {
@@ -10,7 +13,8 @@ export function formatDate(dateString: string, format: 'long' | 'short' | 'weekd
     : format === 'weekday'
       ? { weekday: 'short' }
       : { month: 'short', day: 'numeric' };
-  return new Intl.DateTimeFormat('en-US', options).format(dateAtNoon(dateString));
+  const date = dateAtNoon(dateString);
+  return date ? new Intl.DateTimeFormat('en-US', options).format(date) : 'Date unavailable';
 }
 
 export function daysUntil(dateString: string, now = new Date()): number {

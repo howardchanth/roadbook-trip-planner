@@ -64,7 +64,6 @@ export function getInviteToken(): string | null {
 
   if (invite) {
     window.sessionStorage.setItem(TOKEN_KEY, invite);
-    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
   }
   return cachedInviteToken;
 }
