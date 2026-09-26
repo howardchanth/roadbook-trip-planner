@@ -20,8 +20,10 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
     return regions;
   }, []).join(' → ');
   const activeDay = trip.days[progress.activeDayIndex];
-  const confirmedStayNames = Array.from(new Set(trip.days.filter((day) => day.stayUrl).map((day) => day.stay)));
-  const confirmedNightCount = trip.days.filter((day) => day.stayUrl).length;
+  const linkedStayDays = trip.days.filter((day) => day.stayUrl);
+  const confirmedStayNames = Array.from(new Set(linkedStayDays.filter((day) => (day.stayStatus ?? 'confirmed') === 'confirmed').map((day) => day.stay)));
+  const pendingStayNames = Array.from(new Set(linkedStayDays.filter((day) => day.stayStatus === 'selected' || day.stayStatus === 'unverified').map((day) => day.stay)));
+  const linkedNightCount = linkedStayDays.length;
   const countdown = progress.phase === 'upcoming'
     ? progress.daysUntilStart === 0 ? 'Today' : `${progress.daysUntilStart} days`
     : progress.phase === 'returned' ? 'Complete' : `${progress.completedDays} of ${progress.totalDays} days`;
@@ -78,7 +80,7 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
         </div>
           <div className="plan-pulse__cell">
           <div className="plan-pulse__icon"><Route size={18} /></div>
-          <div><span>Route shape</span><strong>{routeShape || 'Group route'}</strong><small>{trip.days.length} trip dates · {confirmedNightCount ? `${confirmedNightCount} booked nights · ${confirmedStayNames.length} stays confirmed` : 'lodging to confirm'}</small></div>
+          <div><span>Route shape</span><strong>{routeShape || 'Group route'}</strong><small>{linkedNightCount ? `${linkedNightCount} linked nights · ${confirmedStayNames.length} stays confirmed${pendingStayNames.length ? ` · ${pendingStayNames.length} to verify` : ''}` : 'lodging to confirm'}</small></div>
         </div>
         <button className="plan-pulse__cell plan-pulse__cell--button" onClick={onMoney}>
           <div className="plan-pulse__icon"><ArrowUpRight size={18} /></div>
@@ -112,7 +114,7 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
             </article>
           ))}
         </div>
-        <div className="booking-note"><TimerReset size={15} /><span>{confirmedStayNames.length} lodging bookings are linked in the day plan; flight details still show their confirmation state.</span><Check size={15} /></div>
+        <div className="booking-note"><TimerReset size={15} /><span>{confirmedStayNames.length} lodging bookings are confirmed; {pendingStayNames.length ? `${pendingStayNames.length} linked stays still need verification.` : 'all linked stays are confirmed.'} Flight details still show their confirmation state.</span><Check size={15} /></div>
       </section>
     </div>
   );

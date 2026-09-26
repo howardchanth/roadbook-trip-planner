@@ -23,6 +23,7 @@ export interface TripDay {
   stay: string;
   stayNote?: string;
   stayUrl?: string;
+  stayStatus?: 'confirmed' | 'selected' | 'unverified';
   meals: FoodStop[];
   status?: 'tentative' | 'watch';
 }

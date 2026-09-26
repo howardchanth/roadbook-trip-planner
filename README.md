@@ -40,6 +40,8 @@ The invite link is a bearer credential: anyone who receives it can view and edit
 
 The repository is safe to make public only when it contains no private `.local/` files, `.env.local`, invite tokens, spreadsheet IDs, or generated build output. Keep those paths ignored. The published app will show the synthetic sample until a traveler opens a private invite link connected to the Apps Script web app. GitHub Pages serves only the static interface; the Apps Script deployment performs spreadsheet reads and writes.
 
+The revised Plan B1 PDF is kept in the project folder as a private source document and is ignored by Git for the same reason. The local Vite preview reads the updated private itinerary from `.local/trip.json`.
+
 ## Calculation rules
 
 - Each expense is split evenly among its selected beneficiaries.
