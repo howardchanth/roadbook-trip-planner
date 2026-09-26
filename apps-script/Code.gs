@@ -69,9 +69,12 @@ function organizeRoadbookTabs() {
  * keeps the two spreadsheet views physically aligned for future edits.
  */
 function syncMoneyPoolLedger() {
+  const removedMoneyPool = repairMoneyPoolDuplicates_();
+  const removedAppExpenses = repairExpenseDuplicates_();
   const imported = syncMoneyPoolToAppExpenses_();
+  organizeRoadbookTabs();
   SpreadsheetApp.flush();
-  Logger.log('Imported ' + imported + ' Money Pool transaction(s) into AppExpenses.');
+  Logger.log('Removed ' + removedMoneyPool + ' duplicate Money Pool row(s), removed ' + removedAppExpenses + ' duplicate AppExpenses row(s), and imported/refreshed ' + imported + ' Money Pool transaction(s) in AppExpenses.');
 }
 
 function doGet(event) {
@@ -378,7 +381,11 @@ function syncMoneyPoolToAppExpenses_() {
   const appSheet = sheet_(SHEET_NAMES.expenses);
   let imported = 0;
   readMoneyPoolExpenses_().forEach(function (expense) {
-    if (!findExpenseRow_(expense.id)) {
+    const rowNumber = findExpenseRow_(expense.id);
+    if (rowNumber) {
+      appSheet.getRange(rowNumber, 1, 1, HEADERS.expenses.length).setValues([expenseRow_(expense)]);
+      imported += 1;
+    } else {
       appSheet.appendRow(expenseRow_(expense));
       imported += 1;
     }
@@ -503,8 +510,14 @@ function categoryFromDescription_(description) {
  * intentionally preserved.
  */
 function repairExpenseDuplicates() {
+  const removed = repairExpenseDuplicates_();
+  SpreadsheetApp.flush();
+  Logger.log('Removed ' + removed + ' duplicate expense row(s).');
+}
+
+function repairExpenseDuplicates_() {
   const sheet = sheet_(SHEET_NAMES.expenses);
-  if (sheet.getLastRow() < 2) return;
+  if (sheet.getLastRow() < 2) return 0;
   const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.expenses.length).getValues();
   const seenIds = {};
   const duplicateRows = [];
@@ -515,8 +528,32 @@ function repairExpenseDuplicates() {
     else seenIds[expense.id] = true;
   });
   for (let index = duplicateRows.length - 1; index >= 0; index -= 1) sheet.deleteRow(duplicateRows[index]);
+  return duplicateRows.length;
+}
+
+/** Remove only repeated transaction IDs below the Money Pool table header. */
+function repairMoneyPoolDuplicates() {
+  const removed = repairMoneyPoolDuplicates_();
   SpreadsheetApp.flush();
-  Logger.log('Removed ' + duplicateRows.length + ' duplicate expense row(s).');
+  Logger.log('Removed ' + removed + ' duplicate Money Pool row(s).');
+}
+
+function repairMoneyPoolDuplicates_() {
+  const sheet = moneyPoolSheet_();
+  if (!sheet || sheet.getLastRow() < 2) return 0;
+  const values = sheet.getDataRange().getValues();
+  const headerRow = findMoneyPoolHeaderRow_(values);
+  if (headerRow < 0) return 0;
+  const seenIds = {};
+  const duplicateRows = [];
+  for (let index = headerRow + 1; index < values.length; index += 1) {
+    const id = cleanText_(values[index][3], 100);
+    if (!id) continue;
+    if (seenIds[id]) duplicateRows.push(index + 1);
+    else seenIds[id] = true;
+  }
+  for (let index = duplicateRows.length - 1; index >= 0; index -= 1) sheet.deleteRow(duplicateRows[index]);
+  return duplicateRows.length;
 }
 
 function readHistory_() {
