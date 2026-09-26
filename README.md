@@ -15,7 +15,7 @@ The itinerary editor is on **Trip details → Edit day**. It updates a day's tit
 
 The Overview uses a lightweight SVG route schematic that keeps the booked overnight sequence readable on phones, tablets, and laptops. It shows the covered segment, planned segment, current marker, stop labels, and date strip without external map tiles or a network dependency.
 
-This workspace is connected to the existing trip spreadsheet through an owner-authorized Apps Script endpoint. The initial trip plan and traveler list are in the app-managed tabs; sample expenses remain in this browser until travelers submit real entries. `.env.local`, `.local/`, and invite tokens are private and ignored by Git. The website itself has not been published.
+This workspace is connected to the existing trip spreadsheet through an owner-authorized Apps Script endpoint. The initial trip plan and traveler list are in the app-managed tabs; sample expenses remain in this browser until travelers submit real entries. `.env.local`, `.local/`, and invite tokens are private and ignored by Git. The public GitHub Pages site is https://howardchanth.github.io/roadbook-trip-planner/; its base page shows the fictional sample until someone opens a private invite link.
 
 ## Connect the shared spreadsheet later
 
@@ -36,9 +36,9 @@ The Apps Script code creates app-managed tabs in the existing workbook and leave
 
 The invite link is a bearer credential: anyone who receives it can view and edit the trip data. Names entered in “Recording as” are self-reported. The original spreadsheet’s sharing setting is separate from this app invite, so review the workbook’s own link-sharing access before using it for private trip details. To revoke the app links, replace the `INVITE_TOKEN` Apps Script property with a fresh random token and distribute a new invite.
 
-## Public hosting later
+## GitHub Pages hosting
 
-The repository is safe to make public only when it contains no private `.local/` files, `.env.local`, invite tokens, spreadsheet IDs, or generated build output. Keep those paths ignored. The published app will show the synthetic sample until a traveler opens a private invite link connected to the Apps Script web app. GitHub Pages serves only the static interface; the Apps Script deployment performs spreadsheet reads and writes.
+The repository is safe to make public only when it contains no private `.local/` files, `.env.local`, invite tokens, spreadsheet IDs, or generated build output. Keep those paths ignored. GitHub Pages deploys automatically from `.github/workflows/deploy-pages.yml` and serves the static interface at https://howardchanth.github.io/roadbook-trip-planner/. The base page shows the synthetic sample; a private invite link loads the shared trip from Apps Script, and the Apps Script deployment performs spreadsheet reads and writes.
 
 The revised Plan B1 PDF is kept in the project folder as a private source document and is ignored by Git for the same reason. The local Vite preview reads the updated private itinerary from `.local/trip.json`.
 
