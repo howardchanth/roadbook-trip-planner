@@ -1,7 +1,8 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { ArrowUpRight, Check, ChevronDown, CircleHelp, FilePlus2, Plus, RotateCcw, Trash2, Users, WalletCards, X } from 'lucide-react';
 import { balancesByCurrency, expenseNet, formatMoney, splitExpense, totalForCurrency } from '../lib/money';
 import { formatDate } from '../lib/dates';
+import { isLikelyDuplicateExpense } from '../lib/storage';
 import type { Currency, Expense, HistoryEntry, Traveler } from '../types';
 
 export type StorageMode = 'local' | 'live' | 'error';
@@ -59,6 +60,7 @@ function ExpenseForm({
   const [allPeople, setAllPeople] = useState(!expense || expense.beneficiaryIds.length === members.length);
   const [selectedIds, setSelectedIds] = useState<string[]>(expense?.beneficiaryIds ?? members.map((member) => member.id));
   const [formError, setFormError] = useState('');
+  const submittingRef = useRef(false);
 
   function toggleMember(memberId: string) {
     setSelectedIds((current) => current.includes(memberId) ? current.filter((id) => id !== memberId) : [...current, memberId]);
@@ -67,6 +69,7 @@ function ExpenseForm({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy || submittingRef.current) return;
     setFormError('');
     const amountCents = centsFromField(amount);
     const beneficiaryIds = allPeople ? members.map((member) => member.id) : members.filter((member) => selectedIds.includes(member.id)).map((member) => member.id);
@@ -90,11 +93,14 @@ function ExpenseForm({
       createdBy: expense?.createdBy ?? actor,
       ...(expense ? { updatedAt: now, updatedBy: actor } : {}),
     };
+    submittingRef.current = true;
     try {
       await onSave(saved);
       onClose();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'The change could not be saved.');
+    } finally {
+      submittingRef.current = false;
     }
   }
 
@@ -169,6 +175,7 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
   const [memberError, setMemberError] = useState('');
   const [actor, setActor] = useState(members[0]?.name ?? '');
   const [toast, setToast] = useState('');
+  const saveInFlightRef = useRef(false);
 
   const orderedExpenses = useMemo(() => [...expenses].sort((a, b) => `${b.date}-${b.createdAt}`.localeCompare(`${a.date}-${a.createdAt}`)), [expenses]);
   const filteredExpenses = orderedExpenses.filter((expense) => currencyFilter === 'ALL' || expense.currency === currencyFilter);
@@ -178,6 +185,11 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
   const hkdTotal = totalForCurrency(expenses, 'HKD');
 
   async function saveExpense(expense: Expense) {
+    if (saveInFlightRef.current) return;
+    if (!editing && isLikelyDuplicateExpense(expense, expenses)) {
+      throw new Error('A matching transaction is already in the ledger. Edit that entry instead of adding it again.');
+    }
+    saveInFlightRef.current = true;
     setBusy(true);
     try {
       await onSave(expense, Boolean(editing));
@@ -186,6 +198,7 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
       setShowForm(false);
       window.setTimeout(() => setToast(''), 3200);
     } finally {
+      saveInFlightRef.current = false;
       setBusy(false);
     }
   }

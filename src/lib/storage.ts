@@ -32,6 +32,71 @@ interface LedgerResponse {
 const endpoint = import.meta.env.VITE_LEDGER_ENDPOINT?.trim() ?? '';
 let cachedInviteToken: string | null | undefined;
 
+const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
+
+function expenseFingerprint(expense: Expense): string {
+  const beneficiaries = [...new Set(expense.beneficiaryIds)].sort().join(',');
+  return [
+    expense.date,
+    expense.description.trim().toLocaleLowerCase(),
+    expense.category.trim().toLocaleLowerCase(),
+    expense.amountCents,
+    expense.currency,
+    expense.payerId,
+    beneficiaries,
+  ].join('|');
+}
+
+function expenseTime(expense: Expense): number | null {
+  const timestamp = Date.parse(expense.createdAt);
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+/**
+ * Keep the ledger stable when a retry or an old Sheet row has been stored twice.
+ * Exact IDs are always duplicates. Matching rows are treated as duplicates only
+ * when they were created within a short window, so two intentional costs with
+ * the same description on different days remain separate.
+ */
+export function dedupeExpenses(expenses: Expense[]): Expense[] {
+  const seenIds = new Set<string>();
+  const seenFingerprints = new Map<string, Expense>();
+  const unique: Expense[] = [];
+
+  for (const expense of expenses) {
+    if (!expense || typeof expense.id !== 'string' || !expense.id.trim() || seenIds.has(expense.id)) continue;
+    seenIds.add(expense.id);
+
+    const fingerprint = expenseFingerprint(expense);
+    const previous = seenFingerprints.get(fingerprint);
+    const currentTime = expenseTime(expense);
+    const previousTime = previous ? expenseTime(previous) : null;
+    const isNearDuplicate = previous && currentTime !== null && previousTime !== null
+      ? Math.abs(currentTime - previousTime) <= DUPLICATE_WINDOW_MS
+      : false;
+    if (isNearDuplicate) continue;
+
+    seenFingerprints.set(fingerprint, expense);
+    unique.push(expense);
+  }
+
+  return unique;
+}
+
+export function isLikelyDuplicateExpense(candidate: Expense, expenses: Expense[], ignoreId?: string): boolean {
+  const candidateFingerprint = expenseFingerprint(candidate);
+  const candidateTime = expenseTime(candidate);
+  return expenses.some((expense) => {
+    if (expense.id === ignoreId || expenseFingerprint(expense) !== candidateFingerprint) return false;
+    const existingTime = expenseTime(expense);
+    return candidateTime !== null && existingTime !== null && Math.abs(candidateTime - existingTime) <= DUPLICATE_WINDOW_MS;
+  });
+}
+
+function normalizeLedgerResponse(response: LedgerResponse): LedgerResponse {
+  return Array.isArray(response.expenses) ? { ...response, expenses: dedupeExpenses(response.expenses) } : response;
+}
+
 export function getInviteToken(): string | null {
   if (cachedInviteToken !== undefined) return cachedInviteToken;
   const fragment = new URLSearchParams(window.location.hash.slice(1));
@@ -98,6 +163,7 @@ function freshSampleExpenses(members: Traveler[]): Expense[] {
 }
 
 export function loadLocalLedger(tripId: string, members: Traveler[], seedExpenses: Expense[] = []): LocalLedger {
+  const uniqueSeedExpenses = dedupeExpenses(seedExpenses);
   try {
     const raw = window.localStorage.getItem(storageKey(tripId));
     if (raw) {
@@ -105,25 +171,25 @@ export function loadLocalLedger(tripId: string, members: Traveler[], seedExpense
       if (Array.isArray(parsed.expenses) && Array.isArray(parsed.history)) {
         // Replace an untouched sample ledger when the private fixture gains
         // authoritative booked costs; preserve later local edits.
-        if (seedExpenses.length && parsed.history.length === 0) return { expenses: seedExpenses, history: [] };
+        if (uniqueSeedExpenses.length && parsed.history.length === 0) return { expenses: uniqueSeedExpenses, history: [] };
         // A browser can retain the starter sample after the private trip
         // fixture is loaded. Remove only those marked demo rows so the
         // authoritative booked costs are the first entries users see while
         // preserving every later user-created expense.
-        const existingExpenses = seedExpenses.length
+        const existingExpenses = uniqueSeedExpenses.length
           ? parsed.expenses.filter((expense) => !expense.id.startsWith('demo-'))
           : parsed.expenses;
-        const known = new Set(existingExpenses.map((expense) => expense.id));
-        const missing = seedExpenses.filter((expense) => !known.has(expense.id));
-        return missing.length || existingExpenses.length !== parsed.expenses.length
-          ? { ...parsed, expenses: [...missing, ...existingExpenses] }
-          : parsed;
+        const uniqueExistingExpenses = dedupeExpenses(existingExpenses);
+        const known = new Set(uniqueExistingExpenses.map((expense) => expense.id));
+        const missing = uniqueSeedExpenses.filter((expense) => !known.has(expense.id));
+        const expenses = dedupeExpenses([...missing, ...uniqueExistingExpenses]);
+        return { ...parsed, expenses };
       }
     }
   } catch {
     // Ignore malformed browser storage and restore the marked sample ledger.
   }
-  return { expenses: seedExpenses.length ? seedExpenses : freshSampleExpenses(members), history: [] };
+  return { expenses: uniqueSeedExpenses.length ? uniqueSeedExpenses : dedupeExpenses(freshSampleExpenses(members)), history: [] };
 }
 
 export function saveLocalLedger(tripId: string, ledger: LocalLedger): void {
@@ -148,7 +214,7 @@ export function saveLocalMembers(tripId: string, members: Traveler[]): void {
 }
 
 export function resetLocalLedger(tripId: string, members: Traveler[], seedExpenses: Expense[] = []): LocalLedger {
-  const ledger = { expenses: seedExpenses.length ? seedExpenses : freshSampleExpenses(members), history: [] };
+  const ledger = { expenses: seedExpenses.length ? dedupeExpenses(seedExpenses) : dedupeExpenses(freshSampleExpenses(members)), history: [] };
   saveLocalLedger(tripId, ledger);
   return ledger;
 }
@@ -156,7 +222,7 @@ export function resetLocalLedger(tripId: string, members: Traveler[], seedExpens
 export async function readLiveSnapshot(): Promise<LedgerResponse> {
   const token = getInviteToken();
   if (!endpoint || !token) throw new Error('A private invite and Apps Script endpoint are required.');
-  return requestJsonp(endpoint, token);
+  return normalizeLedgerResponse(await requestJsonp(endpoint, token));
 }
 
 export async function mutateLive(mutation: Mutation): Promise<LedgerResponse> {
@@ -167,7 +233,7 @@ export async function mutateLive(mutation: Mutation): Promise<LedgerResponse> {
   const deadline = Date.now() + 12_000;
   let lastSnapshot: LedgerResponse | null = null;
   while (Date.now() < deadline) {
-    lastSnapshot = await requestJsonp(endpoint, token);
+    lastSnapshot = normalizeLedgerResponse(await requestJsonp(endpoint, token));
     if (lastSnapshot.history?.some((entry) => entry.requestId === mutation.requestId)) {
       if (!lastSnapshot.ok) throw new Error(lastSnapshot.error || 'The spreadsheet rejected the change.');
       return lastSnapshot;
@@ -235,7 +301,7 @@ export function applyLocalMutation(ledger: LocalLedger, mutation: Mutation): Loc
   const at = new Date().toISOString();
 
   if (mutation.action === 'create') {
-    next.expenses.unshift(mutation.expense);
+    if (!next.expenses.some((expense) => expense.id === mutation.expense.id)) next.expenses.unshift(mutation.expense);
     next.history.unshift({ id: `history-${mutation.requestId}`, requestId: mutation.requestId, at, actor: mutation.actor, action: 'created', after: mutation.expense });
   } else if (mutation.action === 'update') {
     const index = next.expenses.findIndex((expense) => expense.id === mutation.expense.id);

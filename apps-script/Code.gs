@@ -118,6 +118,7 @@ function initializeTrip_(payload, actor, requestId) {
 function createExpense_(rawExpense, actor, requestId) {
   const expense = normalizeExpense_(rawExpense);
   if (findExpenseRow_(expense.id)) throw new Error('That expense ID already exists.');
+  if (hasLikelyDuplicateExpense_(expense, readExpenses_())) throw new Error('A matching expense already exists. Edit it instead of adding it again.');
   const now = new Date().toISOString();
   expense.createdAt = now;
   expense.createdBy = actor;
@@ -129,6 +130,7 @@ function updateExpense_(rawExpense, actor, requestId) {
   const expense = normalizeExpense_(rawExpense);
   const rowNumber = findExpenseRow_(expense.id);
   if (!rowNumber) throw new Error('This expense no longer exists. Refresh the ledger and try again.');
+  if (hasLikelyDuplicateExpense_(expense, readExpenses_().filter(function (item) { return item.id !== expense.id; }))) throw new Error('Another matching expense already exists. Review the ledger before saving this edit.');
   const sheet = sheet_(SHEET_NAMES.expenses);
   const before = expenseFromRow_(sheet.getRange(rowNumber, 1, 1, HEADERS.expenses.length).getValues()[0]);
   expense.createdAt = before.createdAt;
@@ -273,7 +275,39 @@ function readMembers_() {
 function readExpenses_() {
   const sheet = sheet_(SHEET_NAMES.expenses);
   if (sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.expenses.length).getValues().map(expenseFromRow_);
+  const seenIds = {};
+  const seenFingerprints = {};
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.expenses.length).getValues()
+    .map(expenseFromRow_)
+    .filter(function (expense) {
+      if (!expense.id || seenIds[expense.id]) return false;
+      if (hasLikelyDuplicateExpense_(expense, Object.keys(seenFingerprints).map(function (key) { return seenFingerprints[key]; }))) return false;
+      seenIds[expense.id] = true;
+      seenFingerprints[expenseFingerprint_(expense)] = expense;
+      return true;
+    });
+}
+
+/**
+ * Run this once from the Apps Script editor if the AppExpenses tab already
+ * contains duplicate rows. It removes only repeated IDs or matching entries
+ * created within the duplicate-protection window, keeping the first row.
+ */
+function repairExpenseDuplicates() {
+  const sheet = sheet_(SHEET_NAMES.expenses);
+  if (sheet.getLastRow() < 2) return;
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.expenses.length).getValues();
+  const kept = [];
+  const duplicateRows = [];
+  rows.forEach(function (row, index) {
+    const expense = expenseFromRow_(row);
+    const duplicate = !expense.id || kept.some(function (existing) { return existing.id === expense.id || hasLikelyDuplicateExpense_(expense, [existing]); });
+    if (duplicate) duplicateRows.push(index + 2);
+    else kept.push(expense);
+  });
+  for (let index = duplicateRows.length - 1; index >= 0; index -= 1) sheet.deleteRow(duplicateRows[index]);
+  SpreadsheetApp.flush();
+  Logger.log('Removed ' + duplicateRows.length + ' duplicate expense row(s).');
 }
 
 function readHistory_() {
@@ -293,6 +327,24 @@ function expenseFromRow_(row) {
 
 function expenseRow_(expense) {
   return [expense.id, expense.date, expense.description, expense.category, expense.amountCents, expense.currency, expense.payerId, JSON.stringify(expense.beneficiaryIds), expense.createdAt, expense.createdBy, expense.updatedAt || '', expense.updatedBy || ''];
+}
+
+const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
+
+function expenseFingerprint_(expense) {
+  const beneficiaries = expense.beneficiaryIds.slice().sort().join(',');
+  return [expense.date, expense.description.toLowerCase(), expense.category.toLowerCase(), expense.amountCents, expense.currency, expense.payerId, beneficiaries].join('|');
+}
+
+function hasLikelyDuplicateExpense_(candidate, expenses) {
+  const candidateTime = Date.parse(candidate.createdAt || '');
+  if (!isFinite(candidateTime)) return false;
+  const fingerprint = expenseFingerprint_(candidate);
+  return expenses.some(function (expense) {
+    if (expense.id === candidate.id || expenseFingerprint_(expense) !== fingerprint) return false;
+    const existingTime = Date.parse(expense.createdAt || '');
+    return isFinite(existingTime) && Math.abs(candidateTime - existingTime) <= DUPLICATE_WINDOW_MS;
+  });
 }
 
 function historyFromRow_(row) {
