@@ -15,7 +15,7 @@ Roadbook treats the trip as a shared field guide: a calm map table for orientati
 
 ## Layout and behavior
 
-- **Overview:** trip identity and dates lead into an interactive, north-up Three.js map beside a progress card. OpenStreetMap cartography sits on a shallow relief board; the planned route, traveled segment, active stop, and ordered stop list stay distinct. Keep map attribution visible and preserve a local relief fallback when tiles cannot load.
+- **Overview:** trip identity and dates lead into an interactive Three.js route field beside a progress card. The scene is a dark instrument inset into the paper frame: low relief, restrained contour loops, one luminous route signal, stop beacons, pointer parallax, and a motion toggle give the roadbook a sense of depth without turning the planner into a decorative map. The active marker and ordered stop list stay distinct. If WebGL is unavailable, the ordered stop rail and route readout remain usable.
 - **Trip details:** each date expands in place to reveal its plan, stay, meal suggestions, and any relevant alert. Tentative ideas remain visibly distinct from bookings.
 - **Money pool:** balances sit above a filterable ledger. Every expense can expand to show each traveler’s share, amount paid, net effect, and rounding rule.
 - **Responsive shell:** laptop layouts use a compact left rail; small screens switch to a bottom navigation bar and stacked cards. Forms and ledger details reflow for touch widths.

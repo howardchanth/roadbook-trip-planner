@@ -1,7 +1,7 @@
-import { ArrowDownRight, ArrowUpRight, CalendarDays, Check, CircleAlert, CircleDollarSign, Compass, ExternalLink, MapPinned, Plane, Route, TimerReset } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, CalendarDays, CarFront, Check, CircleAlert, CircleDollarSign, Compass, ExternalLink, MapPinned, Plane, Route, TimerReset } from 'lucide-react';
 import { formatDate, getTripProgress } from '../lib/dates';
 import { formatAmount } from '../lib/money';
-import type { TripProfile } from '../types';
+import type { RentalPlan, TripProfile } from '../types';
 import { RouteMap } from './RouteMap';
 
 interface OverviewProps {
@@ -9,6 +9,52 @@ interface OverviewProps {
   memberCount: number;
   onItinerary: () => void;
   onMoney: () => void;
+}
+
+function rentalDate(stop: RentalPlan['pickup']): string {
+  return `${formatDate(stop.date, 'weekday')}, ${formatDate(stop.date, 'short')} · ${stop.time}`;
+}
+
+function RentalCard({ rental }: { rental: RentalPlan }) {
+  return (
+    <section className="rental-card" aria-labelledby="rental-heading">
+      <div className="rental-card__head">
+        <div className="rental-card__identity">
+          <span className="rental-card__icon"><CarFront size={21} /></span>
+          <div>
+            <span className="rental-card__eyebrow">Rental car · {rental.provider}</span>
+            <h2 id="rental-heading">{rental.vehicle}</h2>
+            <p>Confirmation {rental.confirmation} · Driver {rental.driver}</p>
+          </div>
+        </div>
+        <span className="rental-card__status"><Check size={13} /> Confirmed</span>
+      </div>
+
+      <div className="rental-card__stops">
+        <div className="rental-stop rental-stop--pickup">
+          <span className="rental-stop__label">Pick up</span>
+          <strong>{rentalDate(rental.pickup)}</strong>
+          <span>{rental.pickup.label}</span>
+        </div>
+        <div className="rental-stop__connector" aria-hidden="true"><i /><span>LAX office</span><i /></div>
+        <div className="rental-stop rental-stop--dropoff">
+          <span className="rental-stop__label">Drop off</span>
+          <strong>{rentalDate(rental.dropoff)}</strong>
+          <span>{rental.dropoff.label}</span>
+        </div>
+      </div>
+
+      <div className="rental-card__details">
+        <div><span>Rental location</span><strong>{rental.location}</strong><p>{rental.address}</p></div>
+        <div><span>Included</span><div className="rental-card__features">{rental.features.map((feature) => <span key={feature}>{feature}</span>)}</div></div>
+      </div>
+
+      <details className="rental-card__instructions">
+        <summary><span>Pickup &amp; shuttle instructions</span><span>Open details <ArrowDownRight size={15} /></span></summary>
+        <div><p>{rental.pickupInstructions}</p><p><strong>Shuttle hours:</strong> {rental.shuttleHours}</p></div>
+      </details>
+    </section>
+  );
 }
 
 export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewProps) {
@@ -88,6 +134,8 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
           <ArrowUpRight className="cell-arrow" size={17} />
         </button>
       </section>
+
+      {trip.rental && <RentalCard rental={trip.rental} />}
 
       {trip.alerts[0] && (
         <section className="travel-alert" aria-labelledby="travel-alert-title">

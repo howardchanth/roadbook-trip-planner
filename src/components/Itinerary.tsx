@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowUpRight, BedDouble, Check, CircleAlert, Clock3, ExternalLink, MapPin, Pencil, Plane, Plus, Trash2, Utensils, X } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, BedDouble, CarFront, Check, CircleAlert, Clock3, ExternalLink, MapPin, Pencil, Plane, Plus, Trash2, Utensils, X } from 'lucide-react';
 import { formatDate } from '../lib/dates';
-import type { FoodStop, TripDay, TripProfile, Traveler } from '../types';
+import type { FoodStop, RentalPlan, TripDay, TripProfile, Traveler } from '../types';
 
 interface ItineraryProps {
   trip: TripProfile;
@@ -43,7 +43,18 @@ function FoodLine({ label, suggestion, detail, url }: { label: string; suggestio
   );
 }
 
-function DayDetail({ day, index, alert }: { day: TripDay; index: number; alert?: TripProfile['alerts'][number] }) {
+function RentalDayNote({ rental, moment }: { rental: RentalPlan; moment: 'pickup' | 'dropoff' }) {
+  const stop = moment === 'pickup' ? rental.pickup : rental.dropoff;
+  return (
+    <section className={`day-detail__rental day-detail__rental--${moment}`} aria-label={`Rental car ${moment}`}>
+      <span className="day-detail__title"><CarFront size={15} /> Rental car · {moment === 'pickup' ? 'pickup' : 'return'}</span>
+      <div className="day-detail__rental-main"><strong>{rental.provider} · {stop.time} · {stop.label}</strong><span>{rental.location} · {rental.address}</span></div>
+      <p>{moment === 'pickup' ? 'From LAX, take the blue Economy Parking Shuttle (Shuttle E), then follow signs to the Off-Airport Rental Car Waiting Area on Level 1. Wait at the curb for the Priceless / NextCar shuttle.' : 'Return the car at the same NextCar office. Their shuttle drops passengers at the Economy Parking Garage curb for the Economy Shuttle back to the terminal.'}</p>
+    </section>
+  );
+}
+
+function DayDetail({ day, index, alert, rental, rentalMoment }: { day: TripDay; index: number; alert?: TripProfile['alerts'][number]; rental?: RentalPlan; rentalMoment?: 'pickup' | 'dropoff' }) {
   return (
     <div className="day-detail">
       <div className="day-detail__left">
@@ -54,6 +65,7 @@ function DayDetail({ day, index, alert }: { day: TripDay; index: number; alert?:
         <span className="day-detail__title"><Utensils size={15} /> Meal ideas · not reservations</span>
         {day.meals.length ? day.meals.map((meal, mealIndex) => <FoodLine key={`${day.id}-${meal.label}-${mealIndex}`} {...meal} />) : <p className="day-detail__empty">No meal ideas added yet.</p>}
       </div>
+      {rental && rentalMoment && <RentalDayNote rental={rental} moment={rentalMoment} />}
       {alert && (
         <div className="day-alert">
           <CircleAlert size={17} />
@@ -248,7 +260,7 @@ export function Itinerary({ trip, members, mode, error: connectionError, onSaveD
                       <button type="button" className="itinerary-edit-button" onClick={() => beginEditing(day)} disabled={mode === 'error'}><Pencil size={14} /> Edit day</button>
                     </div>
                     {mode === 'error' && <p className="itinerary-edit-hint">{connectionError || 'Reconnect the shared trip before editing.'}</p>}
-                    <DayDetail day={day} index={index} alert={alert} />
+                    <DayDetail day={day} index={index} alert={alert} rental={trip.rental} rentalMoment={day.date === trip.rental?.pickup.date ? 'pickup' : day.date === trip.rental?.dropoff.date ? 'dropoff' : undefined} />
                   </>}
                 </div>}
               </div>

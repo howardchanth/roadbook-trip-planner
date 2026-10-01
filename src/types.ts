@@ -37,6 +37,28 @@ export interface FlightPlan {
   kind: 'outbound' | 'return';
 }
 
+export interface RentalPlan {
+  provider: string;
+  vehicle: string;
+  pickup: {
+    date: string;
+    time: string;
+    label: string;
+  };
+  dropoff: {
+    date: string;
+    time: string;
+    label: string;
+  };
+  location: string;
+  address: string;
+  confirmation: string;
+  driver: string;
+  features: string[];
+  pickupInstructions: string;
+  shuttleHours: string;
+}
+
 export interface RouteStop {
   id: string;
   name: string;
@@ -56,6 +78,7 @@ export interface TripProfile {
   budget: { low: number; target: number; high: number; currency: Currency; note: string };
   days: TripDay[];
   flights: FlightPlan[];
+  rental?: RentalPlan;
   route: RouteStop[];
   alerts: Array<{ title: string; body: string; url: string; sourceLabel: string; checkedOn: string }>;
   sheetUrl?: string;
