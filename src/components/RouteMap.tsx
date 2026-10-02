@@ -318,9 +318,9 @@ export function RouteMap({ trip, activeDayIndex }: RouteMapProps) {
     <section className="route-panel route-panel--cinematic" aria-labelledby="route-heading">
       <div className="route-panel__head route-panel__head--cinematic">
         <div>
-          <div className="route-panel__eyebrow"><RouteIcon size={14} /> Route / 3D field</div>
-          <h2 id="route-heading">The route, without the noise.</h2>
-          <p>{routeCaption || 'Your stops will appear here.'} · one continuous signal through the roadbook.</p>
+          <div className="route-panel__eyebrow"><RouteIcon size={14} /> {visibleStops.length} planned stops</div>
+          <h2 id="route-heading">Trip route</h2>
+          <p>{routeCaption || 'Your stops will appear here.'}</p>
         </div>
         <div className="route-stage__tools" aria-label="Route visual controls">
           <span className="map-mode"><span className="status-light" /> {visibleStops.length} stops</span>
@@ -342,7 +342,7 @@ export function RouteMap({ trip, activeDayIndex }: RouteMapProps) {
           ) : null)}
         </div>
         <div className="route-stage__readout">
-          <span>Live marker</span>
+          <span>Selected stop</span>
           <strong>{selectedStop?.shortName ?? 'Trip start'}</strong>
           <small>{selectedStop?.dayIndex !== undefined && trip.days[selectedStop.dayIndex] ? `${formatDate(trip.days[selectedStop.dayIndex].date, 'short')} · ${trip.days[selectedStop.dayIndex].title}` : 'Route not started'}</small>
         </div>

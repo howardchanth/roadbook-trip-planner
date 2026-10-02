@@ -32,4 +32,6 @@ Roadbook treats the trip as a shared field guide: a calm map table for orientati
 
 ## Responsive review
 
-Reviewed the overview and itinerary at phone width and the dashboard and ledger at desktop width. The route labels remain visible at close stops, the calculation table fits without page-level horizontal overflow at 390 px, and mobile navigation stays reachable at the bottom of the screen.
+On October 2, 2026, reviewed the actual application in browser viewports at 320 px, 390 px, 768 px, and 1440 px. The phone overview uses one full-width column with compact trip progress before the route. Tablet expense forms use two flexible columns; phone transactions put the date and amount above the description and actions. Currency filters wrap and split-calculation columns shrink without page-level horizontal overflow at 320 px. Mobile controls use 44 px tap targets, and bottom navigation reserves the device safe area.
+
+Desktop-only breakpoint overrides must include a minimum width. The previous unrestricted 1180 px override reinstated the desktop overview columns on phones; the same cascade also reinstated fixed ledger and flight columns. Keep final responsive rules for every grid whose desktop dimensions change, rather than reducing only its font sizes.

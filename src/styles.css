@@ -1129,7 +1129,7 @@ body { color: #1a302c; font-size: 15px; line-height: 1.45; }
 .group-roster__member strong { font-size: 12px; }
 .roster-note { gap: 8px; margin-top: 11px; font-size: 10px; }
 
-@media (max-width: 1180px) {
+@media (min-width: 931px) and (max-width: 1180px) {
   :root { --rail-width: 230px; }
   .topbar { padding-right: 28px; padding-left: 28px; }
   .page { padding-right: 28px; padding-left: 28px; }
@@ -1141,6 +1141,25 @@ body { color: #1a302c; font-size: 15px; line-height: 1.45; }
 
 /* Keep a real sidebar on tablet widths. The former icon-only rail made the planner
    feel like a broken mobile view at 800–930px. Stack the overview content instead. */
+@media (max-width: 930px) {
+  .page--money .expense-form__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page--money .field--wide { grid-column: 1 / -1; }
+  .page--money .balance-section__head, .page--money .ledger-section__head { flex-direction: column; align-items: stretch; }
+  .page--money .balance-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .page--money .balance-row > .traveler-mark { grid-column: 1; grid-row: 1; }
+  .page--money .balance-row__name { grid-column: 2; grid-row: 1; }
+  .page--money .balance-amount { min-width: 0; grid-template-columns: auto minmax(0, 1fr); }
+  .page--money .balance-amount:nth-child(3) { grid-column: 1; grid-row: 2; }
+  .page--money .balance-amount:nth-child(4) { grid-column: 2; grid-row: 2; }
+  .page--money .ledger-tools { flex-wrap: wrap; justify-content: flex-start; gap: 12px; }
+  .page--money .record-as { flex: 1 1 180px; }
+  .page--money .filter-group { flex: 0 0 auto; }
+  .page--money .calculation-row { grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, .8fr)); }
+  .page--money .calculation-row > span { min-width: 0; overflow-wrap: anywhere; }
+  .page--money .expense-form__footer { flex-direction: column; align-items: stretch; }
+  .page--money .expense-form__footer > div { justify-content: flex-end; }
+}
+
 @media (min-width: 761px) and (max-width: 930px) {
   :root { --rail-width: 220px; }
   .sidebar { align-items: stretch; padding: 25px 16px 17px; }
@@ -1178,6 +1197,41 @@ body { color: #1a302c; font-size: 15px; line-height: 1.45; }
 }
 
 @media (max-width: 760px) {
+  :root { --rail-width: 0px; }
+  body { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .main-column, .page, .overview-grid > *, .page-title-row > *, .flight-row > *, .flight-detail-row > * { min-width: 0; }
+  .overview-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .journey-panel { grid-row: 1; min-height: auto; }
+  .route-panel { grid-row: 2; }
+  .route-panel__head--cinematic { flex-direction: column; align-items: stretch; gap: 16px; }
+  .route-stage__tools { flex-wrap: wrap; justify-content: flex-start; }
+  .route-control, .icon-button, .mobile-menu-toggle { min-width: 44px; min-height: 44px; }
+  .route-stage__legend { top: auto; right: auto; bottom: 42px; left: 12px; }
+  .route-stage__readout { max-width: calc(100% - 24px); }
+  .route-stop { min-height: 48px; }
+  .route-stop > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+  .flight-row { grid-template-columns: 38px minmax(0, 1fr); }
+  .flight-status { grid-column: 2; white-space: normal; }
+  .flight-detail-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .flight-detail-row__kind { grid-column: 1; grid-row: 1; }
+  .flight-detail-row__state { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
+  .flight-detail-row > div { grid-column: 1 / -1; grid-row: 2; }
+  .flight-detail-row > p { grid-column: 1 / -1; grid-row: 3; }
+  .page--money .transaction-main { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 18px 0; }
+  .page--money .transaction-date { grid-column: 1; grid-row: 1; display: flex; align-items: baseline; gap: 8px; }
+  .page--money .transaction-amount { grid-column: 2; grid-row: 1; }
+  .page--money .transaction-description { grid-column: 1 / -1; grid-row: 2; overflow-wrap: anywhere; }
+  .page--money .calculation-toggle { grid-column: 1; grid-row: 3; justify-content: flex-start; min-height: 44px; }
+  .page--money .transaction-actions { grid-column: 2; grid-row: 3; margin-top: 0; }
+  .page--money .transaction-actions .icon-button { width: 44px; height: 44px; }
+  .page--money .calculation-row { grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, .8fr)); gap: 6px; padding: 10px 6px; }
+  .page--money .calculation-row > span { min-width: 0; overflow-wrap: anywhere; font-size: 12px; }
+  .page--money .calculation-row--head > span { font-size: 11px; }
+  .page--money .record-as select, .page--money .filter-button { min-height: 44px; }
+  .itinerary-editor__field input, .itinerary-editor__field select, .itinerary-editor__field textarea, .page--money .field input, .page--money .field select { font-size: 16px; }
+  .itinerary-day-nav__item, .itinerary-edit-button, .itinerary-editor__add, .itinerary-editor__cancel, .itinerary-editor__save { min-height: 44px; }
+  .mobile-bottom-nav { height: calc(64px + env(safe-area-inset-bottom, 0px)); padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .mobile-bottom-nav__item { min-height: 44px; font-size: 11px; }
   .topbar { height: 62px; padding: 0 17px; }
   .breadcrumb { gap: 8px; font-size: 10px; }
   .breadcrumb strong { max-width: 170px; font-size: 11px; }
@@ -1208,14 +1262,14 @@ body { color: #1a302c; font-size: 15px; line-height: 1.45; }
   .route-strip { padding: 14px 14px 15px; }
   .route-stop { gap: 7px; padding: 6px 4px; }
   .route-stop__pin { width: 27px; height: 27px; font-size: 9px; }
-  .route-stop strong { font-size: 10px; }
-  .route-stop span:last-child { font-size: 9px; }
+  .route-stop strong { font-size: 14px; }
+  .route-stop span:last-child { font-size: 12px; }
   .route-panel__foot { padding: 0 15px 14px; font-size: 9px; }
   .journey-panel { padding: 20px 19px 16px; }
   .journey-count strong { font-size: 48px; }
-  .journey-count span, .current-place > span:last-child { font-size: 11px; }
+  .journey-count span, .current-place > span:last-child { font-size: 14px; }
   .current-place strong { font-size: 15px; }
-  .next-stop strong { font-size: 11px; }
+  .next-stop strong { font-size: 14px; }
   .plan-pulse__cell { min-height: 70px; padding: 12px 15px; }
   .plan-pulse__cell strong { font-size: 12px; }
   .plan-pulse__cell small { font-size: 9px; }
@@ -1223,44 +1277,47 @@ body { color: #1a302c; font-size: 15px; line-height: 1.45; }
   .travel-alert__copy p { font-size: 10px; }
   .section-heading-row h2, .balance-section__head h2, .ledger-section__head h2, .group-section__head h2, .flight-details__heading h2 { font-size: 27px; }
   .section-heading-row p, .balance-section__head p, .ledger-section__head p, .group-section__head p, .flight-details__heading p { font-size: 11px; }
-  .flight-row__route > strong { font-size: 13px; }
-  .flight-row__route p { font-size: 10px; }
-  .flight-status { font-size: 10px; }
+  .flight-row__route > strong { font-size: 15px; }
+  .flight-row__route p { font-size: 14px; }
+  .flight-status { font-size: 12px; }
   .page--money .button { min-height: 42px; font-size: 12px; }
   .page--money .balance-section, .page--money .expense-form { padding: 17px 15px 13px; }
   .page--money .balance-section__head h2, .page--money .ledger-section__head h2, .page--money .group-section__head h2 { font-size: 27px; }
   .page--money .currency-total-group { width: 100%; justify-content: flex-start; }
   .page--money .currency-total strong { font-size: 21px; }
   .page--money .balance-row { grid-template-columns: 34px minmax(0, 1fr); gap: 8px 10px; }
-  .page--money .balance-amount { grid-row: 2; }
-  .page--money .balance-amount:nth-child(3) { grid-column: 2; }
-  .page--money .balance-amount:nth-child(4) { grid-column: 2; margin-left: 120px; margin-top: -38px; }
-  .page--money .balance-row__name strong { font-size: 12px; }
-  .page--money .balance-row__name span, .page--money .balance-amount strong { font-size: 11px; }
-  .page--money .balance-amount span, .page--money .balance-amount small { font-size: 9px; }
+  .page--money .balance-row__name { grid-column: 2; }
+  .page--money .balance-amount { grid-row: 2; min-width: 0; grid-template-columns: auto minmax(0, 1fr); }
+  .page--money .balance-amount:nth-child(3) { grid-column: 1; }
+  .page--money .balance-amount:nth-child(4) { grid-column: 2; margin: 0; }
+  .page--money .balance-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page--money .balance-row__name strong { font-size: 16px; }
+  .page--money .balance-row__name span { font-size: 13px; }
+  .page--money .balance-amount strong { font-size: 16px; }
+  .page--money .balance-amount span, .page--money .balance-amount small { font-size: 12px; }
   .page--money .sync-banner > div strong { font-size: 12px; }
-  .page--money .sync-banner > div span { font-size: 10px; }
+  .page--money .sync-banner > div span { font-size: 13px; }
   .page--money .expense-form__header h3 { font-size: 27px; }
-  .page--money .field { font-size: 10px; }
-  .page--money .field input, .page--money .field select { font-size: 12px; }
+  .page--money .field { font-size: 14px; }
+  .page--money .field input, .page--money .field select { font-size: 16px; }
   .page--money .beneficiary-option span { font-size: 11px; }
   .page--money .beneficiary-option small { font-size: 9px; }
   .page--money .transaction-main { min-height: 82px; }
   .page--money .transaction-date strong { font-size: 19px; }
-  .page--money .transaction-description > strong { font-size: 11px; }
-  .page--money .transaction-description > span, .page--money .transaction-description > small { font-size: 9px; }
-  .page--money .transaction-amount { font-size: 13px; }
-  .page--money .calculation-toggle { font-size: 9px; }
+  .page--money .transaction-description > strong { font-size: 16px; }
+  .page--money .transaction-description > span, .page--money .transaction-description > small { font-size: 13px; }
+  .page--money .transaction-amount { font-size: 17px; }
+  .page--money .calculation-toggle { font-size: 13px; }
   .page--money .expense-breakdown { margin-left: 0; }
   .page--money .group-roster__member strong { font-size: 11px; }
   .itinerary-day { grid-template-columns: 82px minmax(0, 1fr); }
   .itinerary-day__date > strong { font-size: 24px; }
-  .itinerary-day__title { font-size: 15px; }
-  .itinerary-day__meta { font-size: 10px; }
+  .itinerary-day__title { font-size: 18px; }
+  .itinerary-day__meta { font-size: 13px; }
   .day-detail { grid-template-columns: minmax(0, 1fr); gap: 18px; padding-right: 0; }
-  .day-detail__section ul { font-size: 11px; }
-  .day-detail__stay p, .meal-line p { font-size: 10px; }
-  .meal-line strong { font-size: 12px; }
+  .day-detail__section ul { font-size: 15px; }
+  .day-detail__stay p, .meal-line p { font-size: 14px; }
+  .meal-line strong { font-size: 15px; }
 }
 
 /* Rental details: keep the confirmation scannable, with the long shuttle note
