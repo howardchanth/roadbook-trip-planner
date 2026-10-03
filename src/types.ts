@@ -23,6 +23,7 @@ export interface TripDay {
   stay: string;
   stayNote?: string;
   stayUrl?: string;
+  stayListingUrl?: string;
   stayStatus?: 'confirmed' | 'selected' | 'unverified';
   meals: FoodStop[];
   status?: 'tentative' | 'watch';
@@ -80,7 +81,7 @@ export interface TripProfile {
   flights: FlightPlan[];
   rental?: RentalPlan;
   route: RouteStop[];
-  alerts: Array<{ title: string; body: string; url: string; sourceLabel: string; checkedOn: string }>;
+  alerts: Array<{ title: string; body: string; url: string; sourceLabel: string; checkedOn: string; dayIds?: string[]; links?: Array<{ label: string; url: string }> }>;
   sheetUrl?: string;
 }
 

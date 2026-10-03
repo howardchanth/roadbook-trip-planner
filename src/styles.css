@@ -363,6 +363,9 @@ a:hover { color: #173e36; }
 .day-detail__stay p { max-width: 62ch; margin: 0; color: #6c7b70; font-size: 9px; line-height: 1.55; }
 .day-detail__stay a { display: inline-flex; align-items: center; gap: 5px; color: #4d7056; font-size: 9px; font-weight: 600; }
 .day-detail__stay a:hover { color: #294b3b; }
+.lodging-links, .alert-links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.lodging-links a, .alert-links a { min-height: 44px; align-items: center; }
+.day-alert__checked { display: block; font-size: 12px; }
 .day-detail__meals { display: flex; flex-direction: column; gap: 0; }
 .meal-line { display: grid; grid-template-columns: 67px minmax(0, 1fr) 23px; align-items: start; gap: 8px; padding: 9px 0; border-bottom: 1px solid #dce3dc; }
 .meal-line:first-of-type { margin-top: 2px; }

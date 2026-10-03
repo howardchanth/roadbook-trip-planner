@@ -43,6 +43,18 @@ function FoodLine({ label, suggestion, detail, url }: { label: string; suggestio
   );
 }
 
+function stayLinkLabel(url: string): string {
+  try {
+    const link = new URL(url);
+    const isAirbnb = link.hostname === 'airbnb.com' || link.hostname.endsWith('.airbnb.com');
+    if (isAirbnb && (/^\/l\//.test(link.pathname) || link.pathname.includes('cotraveler_invitation'))) return 'Open Airbnb invitation';
+    if (isAirbnb && /^\/rooms\//.test(link.pathname)) return 'View Airbnb listing';
+  } catch {
+    // Older trip records may contain a malformed link; avoid claiming it is a booking.
+  }
+  return 'Open lodging link';
+}
+
 function RentalDayNote({ rental, moment }: { rental: RentalPlan; moment: 'pickup' | 'dropoff' }) {
   const stop = moment === 'pickup' ? rental.pickup : rental.dropoff;
   return (
@@ -59,7 +71,16 @@ function DayDetail({ day, index, alert, rental, rentalMoment }: { day: TripDay; 
     <div className="day-detail">
       <div className="day-detail__left">
         <div className="day-detail__section"><span className="day-detail__title"><MapPin size={15} /> The plan</span><ul>{day.plan.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{item}</li>)}</ul></div>
-        <div className="day-detail__section day-detail__stay"><span className="day-detail__title"><BedDouble size={15} /> Where to stay</span><strong>{day.stay}</strong>{day.stayNote && <p>{day.stayNote}</p>}{day.stayUrl && <a href={day.stayUrl} target="_blank" rel="noreferrer">{day.stayStatus === 'unverified' ? 'Open Airbnb link' : 'Open Airbnb booking'} <ExternalLink size={13} /></a>}</div>
+        <div className="day-detail__section day-detail__stay">
+          <span className="day-detail__title"><BedDouble size={15} /> Where to stay</span>
+          <strong>{day.stay}</strong>
+          {day.stayNote && <p>{day.stayNote}</p>}
+          <div className="lodging-links">
+            {day.stayUrl && <a href={day.stayUrl} target="_blank" rel="noreferrer">{stayLinkLabel(day.stayUrl)} <ExternalLink size={13} /></a>}
+            {day.stayListingUrl && day.stayListingUrl !== day.stayUrl && <a href={day.stayListingUrl} target="_blank" rel="noreferrer">View Airbnb listing <ExternalLink size={13} /></a>}
+          </div>
+          {day.stayUrl && stayLinkLabel(day.stayUrl) === 'Open Airbnb invitation' && <p>Airbnb may ask you to sign in to view the shared reservation.</p>}
+        </div>
       </div>
       <div className="day-detail__meals">
         <span className="day-detail__title"><Utensils size={15} /> Meal ideas · not reservations</span>
@@ -69,7 +90,7 @@ function DayDetail({ day, index, alert, rental, rentalMoment }: { day: TripDay; 
       {alert && (
         <div className="day-alert">
           <CircleAlert size={17} />
-          <div><strong>{alert.title}</strong><p>{alert.body}</p><a href={alert.url} target="_blank" rel="noreferrer">Check the latest NPS update <ExternalLink size={13} /></a></div>
+          <div><strong>{alert.title}</strong><p>{alert.body}</p><span className="day-alert__checked">Checked {formatDate(alert.checkedOn)}</span><div className="alert-links"><a href={alert.url} target="_blank" rel="noreferrer">{alert.sourceLabel} <ExternalLink size={13} /></a>{alert.links?.map((link) => <a href={link.url} key={link.url} target="_blank" rel="noreferrer">{link.label} <ExternalLink size={13} /></a>)}</div></div>
         </div>
       )}
       {index === 0 && <p className="day-disclaimer">Confirm flight arrival times before setting the first-day schedule.</p>}
@@ -237,7 +258,7 @@ export function Itinerary({ trip, members, mode, error: connectionError, onSaveD
           const expanded = openDay === day.id;
           const editing = editingDayId === day.id && draft;
           const statusText = day.stayStatus === 'unverified' ? 'Needs confirmation' : day.stayStatus === 'selected' ? 'Selected stay' : day.stayUrl ? 'Booked stay' : day.status === 'watch' ? 'Needs a check' : 'Plan in progress';
-          const alert = day.status === 'watch' ? trip.alerts[0] : undefined;
+          const alert = trip.alerts.find((item) => item.dayIds ? item.dayIds.includes(day.id) : day.status === 'watch');
           return (
             <article id={`day-${day.id}`} className={`itinerary-day${expanded ? ' itinerary-day--open' : ''}${day.status === 'watch' ? ' itinerary-day--watch' : ''}`} key={day.id}>
               <div className="itinerary-day__date">

@@ -24,6 +24,8 @@ Roadbook treats the trip as a shared field guide: a calm map table for orientati
 ## Data and calculation rules
 
 - Keep private trip details in the ignored `.local/` fixture or in the user-configured shared spreadsheet. The public sample is fictional.
+- Lodging uses the original traveler invitation as `stayUrl`; optional `stayListingUrl` opens the public property listing separately. Label invitations and listings by their destination, and explain that Airbnb may require sign-in.
+- Travel alerts can include `dayIds` to limit their appearance in the itinerary and additional source links. Show the date checked. Keep warnings consistent with the booked overnight base; an in-park service closure does not imply an outside-park booking is canceled.
 - A shared edit is attributed to a self-reported traveler name; a private invite link grants access to anyone who receives it.
 - Store money in integer minor units. Split each amount evenly over the selected beneficiaries and assign leftover cents in stable traveler-list order.
 - Credit the payer for the full payment, then subtract their share if they are included as a beneficiary.

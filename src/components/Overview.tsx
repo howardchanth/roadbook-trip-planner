@@ -143,7 +143,7 @@ export function Overview({ trip, memberCount, onItinerary, onMoney }: OverviewPr
           <div className="travel-alert__copy">
             <div className="travel-alert__heading"><h2 id="travel-alert-title">{trip.alerts[0].title}</h2><span>Checked {formatDate(trip.alerts[0].checkedOn)}</span></div>
             <p>{trip.alerts[0].body}</p>
-            <a href={trip.alerts[0].url} target="_blank" rel="noreferrer">{trip.alerts[0].sourceLabel} <ExternalLink size={13} /></a>
+            <div className="alert-links"><a href={trip.alerts[0].url} target="_blank" rel="noreferrer">{trip.alerts[0].sourceLabel} <ExternalLink size={13} /></a>{trip.alerts[0].links?.map((link) => <a href={link.url} key={link.url} target="_blank" rel="noreferrer">{link.label} <ExternalLink size={13} /></a>)}</div>
           </div>
         </section>
       )}
