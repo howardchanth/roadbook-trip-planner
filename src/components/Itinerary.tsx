@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowDown, ArrowUpRight, BedDouble, CarFront, Check, CircleAlert, Clock3, ExternalLink, MapPin, Pencil, Plane, Plus, Trash2, Utensils, X } from 'lucide-react';
 import { formatDate } from '../lib/dates';
 import type { FoodStop, RentalPlan, TripDay, TripProfile, Traveler } from '../types';
@@ -6,6 +6,7 @@ import type { FoodStop, RentalPlan, TripDay, TripProfile, Traveler } from '../ty
 interface ItineraryProps {
   trip: TripProfile;
   members: Traveler[];
+  initialDayId?: string;
   mode: 'local' | 'live' | 'error';
   error?: string;
   onSaveDay(day: TripDay, actor: string): Promise<void>;
@@ -157,13 +158,17 @@ function DayEditor({
   );
 }
 
-export function Itinerary({ trip, members, mode, error: connectionError, onSaveDay }: ItineraryProps) {
-  const [openDay, setOpenDay] = useState(trip.days[0]?.id ?? '');
+export function Itinerary({ trip, members, initialDayId, mode, error: connectionError, onSaveDay }: ItineraryProps) {
+  const [openDay, setOpenDay] = useState(initialDayId || trip.days[0]?.id || '');
   const [editingDayId, setEditingDayId] = useState('');
   const [draft, setDraft] = useState<DayDraft | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [savedDayId, setSavedDayId] = useState('');
+  useEffect(() => {
+    if (!initialDayId) return;
+    document.getElementById(`day-${initialDayId}`)?.scrollIntoView({ block: 'start' });
+  }, [initialDayId]);
   const longDriveDays = trip.days.filter((day) => /long|multi-hour/i.test(day.drive)).map((day) => day.title);
   const driveNote = longDriveDays.length
     ? `${longDriveDays.join(' and ')} have the longest drives. Confirm times and keep those days flexible.`
@@ -228,8 +233,8 @@ export function Itinerary({ trip, members, mode, error: connectionError, onSaveD
     <div className="page page--itinerary">
       <header className="page-title-row page-title-row--itinerary">
         <div>
-          <h1>The days between here and there.</h1>
-          <p>Confirmed stays and links that still need a check are marked clearly; the driving and meal ideas remain easy to adjust.</p>
+          <h1>Trip itinerary</h1>
+          <p>{trip.title}. Open a day for the plan, lodging invitation, and meal ideas.</p>
         </div>
         <div className="itinerary-summary"><strong>{trip.days.length} dates</strong><span>{formatDate(trip.startDate)} — {formatDate(trip.lastTripDate)}</span></div>
       </header>
@@ -237,16 +242,15 @@ export function Itinerary({ trip, members, mode, error: connectionError, onSaveD
       <div className="itinerary-notes">
         <div className="itinerary-notes__icon"><Clock3 size={18} /></div>
         <div><strong>Keep the long-drive days light.</strong><span>{driveNote} {saveLocation}</span></div>
-        <button aria-label="Open trip overview" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><ArrowUpRight size={17} /></button>
       </div>
 
       <nav className="itinerary-day-nav" aria-label="Jump to a trip day">
         <span className="itinerary-day-nav__label">Jump to a date</span>
         <div className="itinerary-day-nav__scroller">
           {trip.days.map((day) => (
-            <button type="button" className={openDay === day.id ? 'itinerary-day-nav__item itinerary-day-nav__item--active' : 'itinerary-day-nav__item'} key={day.id} onClick={() => { setOpenDay(day.id); setEditingDayId(''); setDraft(null); document.getElementById(`day-${day.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+            <button type="button" aria-pressed={openDay === day.id} className={openDay === day.id ? 'itinerary-day-nav__item itinerary-day-nav__item--active' : 'itinerary-day-nav__item'} key={day.id} onClick={() => { setOpenDay(day.id); setEditingDayId(''); setDraft(null); document.getElementById(`day-${day.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
               <span>{formatDate(day.date, 'short')}</span>
-              <strong>{day.city.split('→')[0].trim()}</strong>
+              <strong>{day.city.split('→').at(-1)?.trim()}</strong>
               {day.stayUrl && <i aria-label={day.stayStatus === 'unverified' ? 'Needs confirmation' : day.stayStatus === 'selected' ? 'Selected stay' : 'Booked stay'} title={day.stayStatus === 'unverified' ? 'Needs confirmation' : day.stayStatus === 'selected' ? 'Selected stay' : 'Booked stay'} />}
             </button>
           ))}
@@ -291,7 +295,7 @@ export function Itinerary({ trip, members, mode, error: connectionError, onSaveD
       </div>
 
       <section className="flight-details" aria-labelledby="flight-details-heading">
-        <div className="flight-details__heading"><div><h2 id="flight-details-heading">Flights converge. Confirmations are still open.</h2><p>Only the screenshot candidates and arrival outline are in hand.</p></div><Plane size={20} /></div>
+        <div className="flight-details__heading"><div><h2 id="flight-details-heading">Flights &amp; arrivals</h2><p>The group’s travel details and confirmation status.</p></div><Plane size={20} /></div>
         {trip.flights.map((flight) => (
           <article className="flight-detail-row" key={flight.id}>
             <span className="flight-detail-row__kind">{flight.kind === 'outbound' ? 'Outbound' : 'Return'}</span>

@@ -1,0 +1,458 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-03T14:38:52Z",
+  "title": "Design System: Roadbook",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Roadbook Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0420 249.9)",
+          "oklch(26% 0.0420 249.9)",
+          "oklch(38% 0.0420 249.9)",
+          "oklch(50% 0.0420 249.9)",
+          "oklch(62% 0.0420 249.9)",
+          "oklch(74% 0.0420 249.9)",
+          "oklch(86% 0.0420 249.9)",
+          "oklch(95% 0.0420 249.9)"
+        ]
+      },
+      "amber": {
+        "role": "primary",
+        "displayName": "Journey Amber",
+        "tonalRamp": [
+          "oklch(15% 0.1295 77.9)",
+          "oklch(26% 0.1295 77.9)",
+          "oklch(38% 0.1295 77.9)",
+          "oklch(50% 0.1295 77.9)",
+          "oklch(62% 0.1295 77.9)",
+          "oklch(74% 0.1295 77.9)",
+          "oklch(86% 0.1295 77.9)",
+          "oklch(95% 0.1295 77.9)"
+        ]
+      },
+      "amber-hover": {
+        "role": "primary",
+        "displayName": "Amber Hover",
+        "tonalRamp": [
+          "oklch(15% 0.1210 79.4)",
+          "oklch(26% 0.1210 79.4)",
+          "oklch(38% 0.1210 79.4)",
+          "oklch(50% 0.1210 79.4)",
+          "oklch(62% 0.1210 79.4)",
+          "oklch(74% 0.1210 79.4)",
+          "oklch(86% 0.1210 79.4)",
+          "oklch(95% 0.1210 79.4)"
+        ]
+      },
+      "body-ink": {
+        "role": "neutral",
+        "displayName": "Body Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0437 245.0)",
+          "oklch(26% 0.0437 245.0)",
+          "oklch(38% 0.0437 245.0)",
+          "oklch(50% 0.0437 245.0)",
+          "oklch(62% 0.0437 245.0)",
+          "oklch(74% 0.0437 245.0)",
+          "oklch(86% 0.0437 245.0)",
+          "oklch(95% 0.0437 245.0)"
+        ]
+      },
+      "muted": {
+        "role": "secondary",
+        "displayName": "Muted Slate",
+        "tonalRamp": [
+          "oklch(15% 0.0335 245.4)",
+          "oklch(26% 0.0335 245.4)",
+          "oklch(38% 0.0335 245.4)",
+          "oklch(50% 0.0335 245.4)",
+          "oklch(62% 0.0335 245.4)",
+          "oklch(74% 0.0335 245.4)",
+          "oklch(86% 0.0335 245.4)",
+          "oklch(95% 0.0335 245.4)"
+        ]
+      },
+      "page-bg": {
+        "role": "neutral",
+        "displayName": "Cool Page",
+        "tonalRamp": [
+          "oklch(15% 0.0029 264.5)",
+          "oklch(26% 0.0029 264.5)",
+          "oklch(38% 0.0029 264.5)",
+          "oklch(50% 0.0029 264.5)",
+          "oklch(62% 0.0029 264.5)",
+          "oklch(74% 0.0029 264.5)",
+          "oklch(86% 0.0029 264.5)",
+          "oklch(95% 0.0029 264.5)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Task White",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(50% 0.0000 0.0)",
+          "oklch(62% 0.0000 0.0)",
+          "oklch(74% 0.0000 0.0)",
+          "oklch(86% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "task-tint": {
+        "role": "secondary",
+        "displayName": "Task Blue-Gray",
+        "tonalRamp": [
+          "oklch(15% 0.0069 247.9)",
+          "oklch(26% 0.0069 247.9)",
+          "oklch(38% 0.0069 247.9)",
+          "oklch(50% 0.0069 247.9)",
+          "oklch(62% 0.0069 247.9)",
+          "oklch(74% 0.0069 247.9)",
+          "oklch(86% 0.0069 247.9)",
+          "oklch(95% 0.0069 247.9)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Divider Mist",
+        "tonalRamp": [
+          "oklch(15% 0.0133 251.6)",
+          "oklch(26% 0.0133 251.6)",
+          "oklch(38% 0.0133 251.6)",
+          "oklch(50% 0.0133 251.6)",
+          "oklch(62% 0.0133 251.6)",
+          "oklch(74% 0.0133 251.6)",
+          "oklch(86% 0.0133 251.6)",
+          "oklch(95% 0.0133 251.6)"
+        ]
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "Field Steel",
+        "tonalRamp": [
+          "oklch(15% 0.0275 242.8)",
+          "oklch(26% 0.0275 242.8)",
+          "oklch(38% 0.0275 242.8)",
+          "oklch(50% 0.0275 242.8)",
+          "oklch(62% 0.0275 242.8)",
+          "oklch(74% 0.0275 242.8)",
+          "oklch(86% 0.0275 242.8)",
+          "oklch(95% 0.0275 242.8)"
+        ]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Focus Amber",
+        "tonalRamp": [
+          "oklch(15% 0.1279 70.1)",
+          "oklch(26% 0.1279 70.1)",
+          "oklch(38% 0.1279 70.1)",
+          "oklch(50% 0.1279 70.1)",
+          "oklch(62% 0.1279 70.1)",
+          "oklch(74% 0.1279 70.1)",
+          "oklch(86% 0.1279 70.1)",
+          "oklch(95% 0.1279 70.1)"
+        ]
+      },
+      "positive": {
+        "role": "tertiary",
+        "displayName": "Collect Green",
+        "tonalRamp": [
+          "oklch(15% 0.0814 164.9)",
+          "oklch(26% 0.0814 164.9)",
+          "oklch(38% 0.0814 164.9)",
+          "oklch(50% 0.0814 164.9)",
+          "oklch(62% 0.0814 164.9)",
+          "oklch(74% 0.0814 164.9)",
+          "oklch(86% 0.0814 164.9)",
+          "oklch(95% 0.0814 164.9)"
+        ]
+      },
+      "negative": {
+        "role": "tertiary",
+        "displayName": "Owed Terracotta",
+        "tonalRamp": [
+          "oklch(15% 0.1360 35.7)",
+          "oklch(26% 0.1360 35.7)",
+          "oklch(38% 0.1360 35.7)",
+          "oklch(50% 0.1360 35.7)",
+          "oklch(62% 0.1360 35.7)",
+          "oklch(74% 0.1360 35.7)",
+          "oklch(86% 0.1360 35.7)",
+          "oklch(95% 0.1360 35.7)"
+        ]
+      },
+      "notice-bg": {
+        "role": "tertiary",
+        "displayName": "Warm Notice Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0321 81.0)",
+          "oklch(26% 0.0321 81.0)",
+          "oklch(38% 0.0321 81.0)",
+          "oklch(50% 0.0321 81.0)",
+          "oklch(62% 0.0321 81.0)",
+          "oklch(74% 0.0321 81.0)",
+          "oklch(86% 0.0321 81.0)",
+          "oklch(95% 0.0321 81.0)"
+        ]
+      },
+      "notice-text": {
+        "role": "tertiary",
+        "displayName": "Warm Notice Text",
+        "tonalRamp": [
+          "oklch(15% 0.0569 73.7)",
+          "oklch(26% 0.0569 73.7)",
+          "oklch(38% 0.0569 73.7)",
+          "oklch(50% 0.0569 73.7)",
+          "oklch(62% 0.0569 73.7)",
+          "oklch(74% 0.0569 73.7)",
+          "oklch(86% 0.0569 73.7)",
+          "oklch(95% 0.0569 73.7)"
+        ]
+      },
+      "error-bg": {
+        "role": "tertiary",
+        "displayName": "Pale Error Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0176 39.4)",
+          "oklch(26% 0.0176 39.4)",
+          "oklch(38% 0.0176 39.4)",
+          "oklch(50% 0.0176 39.4)",
+          "oklch(62% 0.0176 39.4)",
+          "oklch(74% 0.0176 39.4)",
+          "oklch(86% 0.0176 39.4)",
+          "oklch(95% 0.0176 39.4)"
+        ]
+      },
+      "error-text": {
+        "role": "tertiary",
+        "displayName": "Error Terracotta",
+        "tonalRamp": [
+          "oklch(15% 0.1185 35.7)",
+          "oklch(26% 0.1185 35.7)",
+          "oklch(38% 0.1185 35.7)",
+          "oklch(50% 0.1185 35.7)",
+          "oklch(62% 0.1185 35.7)",
+          "oklch(74% 0.1185 35.7)",
+          "oklch(86% 0.1185 35.7)",
+          "oklch(95% 0.1185 35.7)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Scenic Trip Title",
+        "purpose": "Caslon identity over the photographic opening."
+      },
+      "headline": {
+        "displayName": "Task Page Title",
+        "purpose": "Itinerary and money page identity."
+      },
+      "section": {
+        "displayName": "Section Heading",
+        "purpose": "Ledger and form headings; Overview uses its observed 30px variant."
+      },
+      "title": {
+        "displayName": "Day Title",
+        "purpose": "Compact Manrope titles inside expandable plans."
+      },
+      "body": {
+        "displayName": "Task Text",
+        "purpose": "Plans, instructions, and calculation explanations."
+      },
+      "field": {
+        "displayName": "Editable Value",
+        "purpose": "16px values inside labeled fields."
+      },
+      "label": {
+        "displayName": "Field Label",
+        "purpose": "Visible compact labels for editable values."
+      },
+      "amount": {
+        "displayName": "Balance Amount",
+        "purpose": "Explicit currency figures with tabular numerals."
+      }
+    },
+    "shadows": [
+      {
+        "name": "mobile-navigation-lift",
+        "value": "0 -4px 20px rgba(12, 30, 46, .08)",
+        "purpose": "Separate fixed bottom navigation from scrolling content."
+      }
+    ],
+    "motion": [
+      {
+        "name": "scene-frame-gate",
+        "value": "33ms",
+        "purpose": "Bound texture-scene render frequency to approximately 30fps; skip while hidden or offscreen."
+      },
+      {
+        "name": "camera-damping",
+        "value": "0.045",
+        "purpose": "Interpolate the scenic camera toward bounded pointer, drift, and selected-day targets."
+      },
+      {
+        "name": "camera-drift",
+        "value": "sin(time × 0.00012) × 0.24",
+        "purpose": "Slow optional scenic movement; visitor pause and reduced motion stop animation."
+      },
+      {
+        "name": "reduced-motion-css",
+        "value": "0.01ms",
+        "purpose": "Existing reduced-motion override for transition and animation durations; scrolling becomes auto."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "scene-dpr-phone",
+        "value": "700px"
+      },
+      {
+        "name": "phone",
+        "value": "760px"
+      },
+      {
+        "name": "task-reflow",
+        "value": "1000px"
+      },
+      {
+        "name": "filmstrip-scroll",
+        "value": "1100px"
+      },
+      {
+        "name": "wide-hero-inset",
+        "value": "1600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Amber Action",
+      "kind": "button",
+      "refersTo": "button-amber",
+      "description": "Implemented labeled action; color and task context follow DESIGN.md.",
+      "html": "<button type=\"button\" class=\"ds-button-amber\">View day</button>",
+      "css": ".ds-button-amber{font-family:'Manrope',sans-serif;color:#302511;background:var(--amber,#daa241);display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:12px 20px;border:0;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}.ds-button-amber:hover{background:#edba62;}.ds-button-amber:focus-visible{outline:3px solid var(--focus,#b77717);outline-offset:4px;}.ds-button-amber:disabled{cursor:not-allowed;opacity:.5;}"
+    },
+    {
+      "name": "Ink Action",
+      "kind": "button",
+      "refersTo": "button-ink",
+      "description": "Implemented labeled action; color and task context follow DESIGN.md.",
+      "html": "<button type=\"button\" class=\"ds-button-ink\">Save changes</button>",
+      "css": ".ds-button-ink{font-family:'Manrope',sans-serif;color:#fff;background:var(--ink,#102234);display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:12px 20px;border:0;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}.ds-button-ink:hover{background:#29445b;}.ds-button-ink:focus-visible{outline:3px solid var(--focus,#b77717);outline-offset:4px;}.ds-button-ink:disabled{cursor:not-allowed;opacity:.5;}"
+    },
+    {
+      "name": "Quiet Action",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Implemented labeled action; color and task context follow DESIGN.md.",
+      "html": "<button type=\"button\" class=\"ds-button-quiet\">Cancel</button>",
+      "css": ".ds-button-quiet{font-family:'Manrope',sans-serif;color:var(--ink,#102234);background:#edf1f5;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:12px 20px;border:0;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}.ds-button-quiet:hover{background:#dce5ed;}.ds-button-quiet:focus-visible{outline:3px solid var(--focus,#b77717);outline-offset:4px;}.ds-button-quiet:disabled{cursor:not-allowed;opacity:.5;}"
+    },
+    {
+      "name": "Labeled Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Visible labels and 16px editable values in day and expense forms.",
+      "html": "<label class=\"ds-field\"><span>Description</span><input type=\"text\" placeholder=\"e.g. Shared dinner\" /></label>",
+      "css": ".ds-field{font-family:'Manrope',sans-serif;display:flex;flex-direction:column;gap:8px;min-width:0;color:var(--ink,#102234);}.ds-field>span{font-size:12px;font-weight:700;}.ds-field input{font-family:'Manrope',sans-serif;color:var(--ink,#102234);width:100%;background:white;border:1px solid #a7b8c6;border-radius:7px;padding:11px 12px;min-height:46px;font-size:16px;caret-color:#95651e;}.ds-field input::placeholder{color:#637689;opacity:1;}.ds-field input:focus-visible{outline:3px solid var(--focus,#b77717);outline-offset:4px;}"
+    },
+    {
+      "name": "Desktop Navigation",
+      "kind": "nav",
+      "refersTo": "desktop-nav",
+      "description": "Ink header navigation with a white current page and amber underline.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Main navigation\"><button type=\"button\" aria-current=\"page\">Overview</button><button type=\"button\">Itinerary</button><button type=\"button\">Money pool</button></nav>",
+      "css": ".ds-nav{font-family:'Manrope',sans-serif;height:72px;padding:0 4%;background:var(--ink,#102234);display:flex;gap:28px;}.ds-nav button{font-family:'Manrope',sans-serif;border:0;border-bottom:2px solid transparent;background:none;color:#c6d1db;padding:0 3px;font-size:14px;font-weight:600;cursor:pointer;}.ds-nav button:hover,.ds-nav button[aria-current=\"page\"]{color:#fff;}.ds-nav button[aria-current=\"page\"]{border-bottom-color:var(--amber,#daa241);}.ds-nav button:focus-visible{outline:3px solid var(--focus,#b77717);outline-offset:4px;}"
+    },
+    {
+      "name": "Day Certainty Label",
+      "kind": "chip",
+      "refersTo": "day-status",
+      "description": "Compact written stay certainty adjacent to a day title.",
+      "html": "<span class=\"ds-status\">Needs confirmation</span>",
+      "css": ".ds-status{font-family:'Manrope',sans-serif;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;font-size:10px;border-radius:5px;background:#e9eef3;color:#425d73;line-height:1.6;}"
+    },
+    {
+      "name": "Task Panel",
+      "kind": "card",
+      "refersTo": "task-card",
+      "description": "White bordered task surface, using the balance-panel heading and padding.",
+      "html": "<section class=\"ds-card\"><h2>Where everyone stands</h2><p>USD and HKD are balanced independently.</p></section>",
+      "css": ".ds-card{font-family:'Manrope',sans-serif;color:#142a3c;background:#fff;border:1px solid var(--line,#dce3eb);border-radius:var(--radius,14px);padding:28px;}.ds-card h2{font:400 32px/1.2 var(--display,'Libre Caslon Display',Georgia,serif);margin:0;}.ds-card p{font-size:12px;color:var(--muted,#566878);margin:10px 0 0;line-height:1.6;}@media(max-width:760px){.ds-card{padding:20px;}.ds-card h2{font-size:29px;}}"
+    },
+    {
+      "name": "Calculation Disclosure",
+      "kind": "button",
+      "refersTo": "math-toggle",
+      "description": "Inspectable transaction arithmetic opens inline under the ledger row.",
+      "html": "<button type=\"button\" class=\"ds-math\" aria-expanded=\"false\"><span>Show the math</span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
+      "css": ".ds-math{font-family:'Manrope',sans-serif;color:#142a3c;display:flex;gap:8px;align-items:center;justify-content:center;background:none;border:1px solid #acbdcb;border-radius:7px;min-height:44px;padding:8px;font-size:11px;cursor:pointer;}.ds-math:hover{background:#e6edf3;}.ds-math:focus-visible{outline:3px solid var(--focus,#b77717);outline-offset:4px;}.ds-math[aria-expanded=\"true\"] svg{transform:rotate(180deg);}"
+    },
+    {
+      "name": "Active Day Panel",
+      "kind": "custom",
+      "description": "Signature translucent scenic panel; preview text is a generic example, with no private trip facts.",
+      "html": "<section class=\"ds-day-panel\"><div class=\"ds-day-date\"><span>Selected date</span><span>Day 1</span></div><h2>Destination</h2><p>Open the selected day plan.</p><button type=\"button\">View day<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 17 17 7M7 7h10v10\"/></svg></button></section>",
+      "css": ".ds-day-panel{font-family:'Manrope',sans-serif;color:#fff;width:280px;max-width:100%;padding:24px;background:rgba(12,29,44,.88);border:1px solid rgba(203,219,234,.24);border-radius:var(--radius,14px);backdrop-filter:blur(12px);}.ds-day-date{display:flex;justify-content:space-between;gap:12px;color:#dde4e9;font-size:12px;}.ds-day-panel h2{font:400 38px/1.05 var(--display,'Libre Caslon Display',Georgia,serif);margin:20px 0 0;}.ds-day-panel p{margin:12px 0 24px;color:#e1e8ee;font-size:14px;line-height:1.55;}.ds-day-panel button{font-family:'Manrope',sans-serif;width:100%;min-height:46px;display:inline-flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px;border:0;border-radius:8px;font-size:14px;font-weight:700;color:#302511;background:var(--amber,#daa241);cursor:pointer;}.ds-day-panel button:hover{background:#edba62;}.ds-day-panel button:focus-visible{outline:3px solid var(--focus,#b77717);outline-offset:4px;}@media(max-width:760px){.ds-day-panel{padding:20px;background:rgba(12,29,44,.92);}.ds-day-panel h2{font-size:32px;margin-top:14px;}.ds-day-panel p{margin:10px 0 18px;font-size:13px;}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Widescreen Journey",
+    "overview": "Roadbook presents shared travel as a cinematic journey with useful plans and auditable costs. Ink blue frames photographic scenery at blue hour; large Caslon titles establish the trip's character. Manrope carries the dates, controls, plans, and calculations that travelers use.\n\nAtmospheric imagery leads into white workspaces with clear headings, fine dividers, and compact metadata. Expression is concentrated in scenery and title typography. Task surfaces remain readable on phones while preserving detailed plans and cost explanations.\n\nThis is the built replacement identity approved October 3, 2026. Evidence: approved A comp, index.html opening contract (seed 0f8eccbb), application CSS/components, and supplied desktop/tablet/phone captures. The existing surface brief holds page strategy. Frontmatter owns primitives; .impeccable/design.json holds extensions and previews. The finish review disposition is ship, with all five opening-contract promises resolved.",
+    "keyCharacteristics": [
+      "Photographic scenery with shallow depth and optional movement.",
+      "Ink-blue navigation and amber actions.",
+      "Caslon titles paired with practical Manrope task text.",
+      "White workspaces, blue-gray insets, and fine structural dividers.",
+      "Explicit dates, certainty labels, currencies, and inspectable calculations.",
+      "Responsive stacking, visible keyboard focus, and usable static imagery."
+    ],
+    "rules": [
+      {
+        "name": "The Action Signal Rule",
+        "body": "Amber marks an Overview action or selected scenic date. Ink marks ledger save actions and active itinerary dates.",
+        "section": "colors"
+      },
+      {
+        "name": "The State Has Words Rule",
+        "body": "Pair semantic color with signed amounts, status text, or an icon.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Use Caslon for identity and section titles; use Manrope for day titles, controls, editable values, state, and arithmetic.",
+        "section": "typography"
+      },
+      {
+        "name": "The Quiet Workspace Rule",
+        "body": "Keep plans, forms, and calculations flat; group them with borders or tinted insets.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use ink-blue framing, amber actions, Caslon titles, and Manrope task text.",
+      "Do keep task content on readable white or blue-gray surfaces.",
+      "Do label scenery as illustrative and preserve the static fallback.",
+      "Do expose selection, expansion, progress, focus, and save feedback semantically.",
+      "Do preserve certainty, source links, alert dates, self-reported actors, and separate currencies.",
+      "Do make every expense's split and remainder inspectable.",
+      "Do stack phone task layouts and reserve bottom-navigation space."
+    ],
+    "donts": [
+      "Don't reintroduce the discarded pine/green identity, lime accents, or condensed display type.",
+      "Don't replace the photo world with a cartoon globe, neon route, or topographic grid.",
+      "Don't treat atmospheric photos or meal ideas as booking evidence.",
+      "Don't hide certainty or financial meaning in color alone.",
+      "Don't combine USD/HKD totals or imply automatic conversion.",
+      "Don't put private fixtures, invite tokens, or booking details in public source or previews.",
+      "Don't add heavy card shadows or compulsory scenery motion."
+    ]
+  }
+}
+

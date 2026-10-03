@@ -8,11 +8,11 @@ importers:
 
   .:
     dependencies:
-      '@fontsource/barlow-condensed':
-        specifier: ^5.2.6
+      '@fontsource/libre-caslon-display':
+        specifier: ^5.3.0
         version: 5.3.0
-      '@fontsource/ibm-plex-sans':
-        specifier: ^5.2.6
+      '@fontsource/manrope':
+        specifier: ^5.3.0
         version: 5.3.0
       '@vitejs/plugin-react':
         specifier: ^5.0.2
@@ -311,11 +311,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fontsource/barlow-condensed@5.3.0':
-    resolution: {integrity: sha512-RA7MmIx0v3eQ6Gcf74qLVLOwLB0GpPOzx+eU9iG/AmCnSJGcIWYeU8y6CEMGZ210MGwGg5CZhzLkkvyZdTTk1g==}
+  '@fontsource/libre-caslon-display@5.3.0':
+    resolution: {integrity: sha512-WZEyiWTKBoXHWHNfdFQcexxmUOQ22XpSK4ivzczY2AnSt/u8DfmzRpYX6eKwUaFjva5BhSbUUArmouHTDwSEFQ==}
 
-  '@fontsource/ibm-plex-sans@5.3.0':
-    resolution: {integrity: sha512-CbE4CbbEEZJX860XyUiRpsksXIQR8Rp2XDva2VO53NJox9tVNtusrysd2x5YkUEY3ErQ66W1IiiQL8/wihhw5w==}
+  '@fontsource/manrope@5.3.0':
+    resolution: {integrity: sha512-obJ1Dv3+uCA6HlHgW8u4BGYxJR9In2HW7gjJhlflEvkrj1X1iSEwu0fToL+JYGC/FEKFfIz1sBuPduvcL2gIAA==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -923,9 +923,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@fontsource/barlow-condensed@5.3.0': {}
+  '@fontsource/libre-caslon-display@5.3.0': {}
 
-  '@fontsource/ibm-plex-sans@5.3.0': {}
+  '@fontsource/manrope@5.3.0': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

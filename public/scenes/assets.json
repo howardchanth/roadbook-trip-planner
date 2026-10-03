@@ -1,0 +1,8 @@
+{
+  "source": "Built-in image generation, October 3, 2026",
+  "purpose": "Illustrative scenery; not booking photos or route accuracy evidence.",
+  "assets": [
+    { "file": "coastal-road.jpg", "prompt": "Photographic California coastal road at blue hour, ocean left, mountains right, warm sunset horizon, SUV lower right. Wide cinematic landscape. No text, logos, UI or invented booking facts. Based on approved widescreen journey composition." },
+    { "file": "destinations.jpg", "prompt": "Six photographic illustrative destination scenes, 3 columns by 2 rows: Los Angeles skyline with palms, San Bernardino mountain lake and cabin, Las Vegas at blue hour, Grand Canyon South Rim, Joshua Tree desert, Southern California palms and low-rise streets. No captions, borders, UI or booking claims." }
+  ]
+}

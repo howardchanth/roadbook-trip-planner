@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { ArrowUpRight, Check, ChevronDown, CircleHelp, FilePlus2, Plus, RotateCcw, Trash2, Users, WalletCards, X } from 'lucide-react';
 import { balancesByCurrency, expenseNet, formatMoney, splitExpense, totalForCurrency } from '../lib/money';
 import { formatDate } from '../lib/dates';
@@ -21,6 +21,7 @@ interface MoneyPoolProps {
   onReset: () => void;
   onCopyInvite: () => Promise<void>;
   inviteAvailable: boolean;
+  formRequest?: number;
 }
 
 function formatLedgerTime(value: string | undefined): string {
@@ -169,7 +170,7 @@ function ExpenseBreakdown({ expense, members, history }: { expense: Expense; mem
   );
 }
 
-export function MoneyPool({ members, expenses, history, mode, error, canInitialize, initializing, onInitialize, onSave, onDelete, onAddMember, onReset, onCopyInvite, inviteAvailable }: MoneyPoolProps) {
+export function MoneyPool({ members, expenses, history, mode, error, canInitialize, initializing, onInitialize, onSave, onDelete, onAddMember, onReset, onCopyInvite, inviteAvailable, formRequest }: MoneyPoolProps) {
   const [currencyFilter, setCurrencyFilter] = useState<'ALL' | Currency>('ALL');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Expense | undefined>();
@@ -181,6 +182,13 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
   const [actor, setActor] = useState(members[0]?.name ?? '');
   const [toast, setToast] = useState('');
   const saveInFlightRef = useRef(false);
+  useEffect(() => { if (formRequest) setShowForm(true); }, [formRequest]);
+
+  async function copyInvite() {
+    try { await onCopyInvite(); setToast('Invite link copied. Share it with your travel group.'); }
+    catch { setToast('Could not copy the invite. Check browser clipboard permissions and try again.'); }
+    window.setTimeout(() => setToast(''), 4000);
+  }
 
   const orderedExpenses = useMemo(() => [...expenses].sort((a, b) => `${b.date}-${b.createdAt}`.localeCompare(`${a.date}-${a.createdAt}`)), [expenses]);
   const filteredExpenses = orderedExpenses.filter((expense) => currencyFilter === 'ALL' || expense.currency === currencyFilter);
@@ -254,7 +262,7 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
       <div className={`sync-banner sync-banner--${mode}`} role="status">
         <span className="sync-banner__light" />
         <div><strong>{storageLabel}</strong><span>{mode === 'live' ? 'Changes save to the shared Sheet. Open pages check for updates automatically.' : mode === 'error' ? error || 'The live connection did not load. Refresh after checking the invite and endpoint.' : 'Private trip entries stay in this browser and do not touch the shared Sheet until it is connected.'}</span></div>
-        {mode === 'live' && inviteAvailable && <button className="sync-banner__action" onClick={() => void onCopyInvite()}>Copy invite link <ArrowUpRight size={14} /></button>}
+        {mode === 'live' && inviteAvailable && <button className="sync-banner__action" onClick={() => void copyInvite()}>Copy invite link <ArrowUpRight size={14} /></button>}
         {mode === 'local' && canInitialize && <button className="sync-banner__action" onClick={() => void onInitialize()} disabled={initializing}>{initializing ? 'Setting up…' : 'Initialize shared Sheet'} <ArrowUpRight size={14} /></button>}
         {mode === 'local' && !canInitialize && <button className="sync-banner__action" onClick={() => { if (window.confirm('Reset the local entries? This clears only this browser’s local ledger.')) onReset(); }}>Reset local entries <RotateCcw size={14} /></button>}
       </div>
@@ -290,7 +298,7 @@ export function MoneyPool({ members, expenses, history, mode, error, canInitiali
           <div><h2 id="ledger-heading">Recent transactions</h2><p>Open “Show the math” on any entry to inspect its exact split.</p></div>
           <div className="ledger-tools">
             <label className="record-as"><span>Recording as</span><select value={actor} onChange={(event) => setActor(event.target.value)}>{members.map((member) => <option key={member.id} value={member.name}>{member.name}</option>)}</select></label>
-            <div className="filter-group" aria-label="Filter transactions by currency"><button className={currencyFilter === 'ALL' ? 'filter-button filter-button--active' : 'filter-button'} onClick={() => setCurrencyFilter('ALL')}>All</button><button className={currencyFilter === 'USD' ? 'filter-button filter-button--active' : 'filter-button'} onClick={() => setCurrencyFilter('USD')}>USD</button><button className={currencyFilter === 'HKD' ? 'filter-button filter-button--active' : 'filter-button'} onClick={() => setCurrencyFilter('HKD')}>HKD</button></div>
+            <div className="filter-group" aria-label="Filter transactions by currency"><button aria-pressed={currencyFilter === 'ALL'} className={currencyFilter === 'ALL' ? 'filter-button filter-button--active' : 'filter-button'} onClick={() => setCurrencyFilter('ALL')}>All</button><button aria-pressed={currencyFilter === 'USD'} className={currencyFilter === 'USD' ? 'filter-button filter-button--active' : 'filter-button'} onClick={() => setCurrencyFilter('USD')}>USD</button><button aria-pressed={currencyFilter === 'HKD'} className={currencyFilter === 'HKD' ? 'filter-button filter-button--active' : 'filter-button'} onClick={() => setCurrencyFilter('HKD')}>HKD</button></div>
           </div>
         </div>
         <div className="transaction-list">

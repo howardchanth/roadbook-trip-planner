@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowUpRight, BookOpen, CircleHelp, Compass, LayoutDashboard, Map, Menu, RotateCcw, ShieldCheck, WalletCards, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowUpRight, BookOpen, CircleHelp, Compass, LayoutDashboard, Map, RotateCcw, WalletCards } from 'lucide-react';
 import { Itinerary } from './components/Itinerary';
 import { MoneyPool, type StorageMode } from './components/MoneyPool';
 import { Overview } from './components/Overview';
@@ -20,7 +20,6 @@ import {
   type LocalLedger,
   type Mutation,
 } from './lib/storage';
-import { formatDate, getTripProgress } from './lib/dates';
 import type { Expense, TripDay, TripSource, Traveler } from './types';
 
 type Page = 'overview' | 'itinerary' | 'money';
@@ -28,10 +27,6 @@ type Snapshot = Awaited<ReturnType<typeof readLiveSnapshot>>;
 
 function requestId(): string {
   return window.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function formatCurrentDate(): string {
-  return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date());
 }
 
 function initials(name: string): string {
@@ -50,7 +45,8 @@ export default function App() {
   const [invitePresent, setInvitePresent] = useState(false);
   const [canInitialize, setCanInitialize] = useState(false);
   const [initializing, setInitializing] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [focusedDayId, setFocusedDayId] = useState('');
+  const [expenseFormRequest, setExpenseFormRequest] = useState(0);
   const pendingLiveWrites = useRef(0);
   const snapshotRevision = useRef(0);
 
@@ -133,7 +129,6 @@ export default function App() {
   const members = remote?.members?.length ? remote.members : source?.members ?? [];
   const expenses = remote?.expenses ?? ledger.expenses;
   const history = remote?.history ?? ledger.history;
-  const progress = useMemo(() => trip ? getTripProgress(trip) : null, [trip]);
 
   useEffect(() => {
     if (trip) document.title = `${trip.title} — Roadbook`;
@@ -233,8 +228,8 @@ export default function App() {
 
   function navigate(next: Page): void {
     setPage(next);
-    setMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setExpenseFormRequest(0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   if (loading || !trip || !source) {
@@ -243,7 +238,7 @@ export default function App() {
 
   const navItems: Array<{ id: Page; label: string; icon: typeof LayoutDashboard }> = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'itinerary', label: 'Trip details', icon: Map },
+    { id: 'itinerary', label: 'Itinerary', icon: Map },
     { id: 'money', label: 'Money pool', icon: WalletCards },
   ];
 
@@ -251,36 +246,28 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar${mobileMenuOpen ? ' sidebar--open' : ''}`}>
-        <div className="brand-lockup"><span className="brand-mark"><Compass size={19} /></span><div><strong>ROADBOOK</strong><small>TRIP SHARING, MADE CLEAR</small></div></div>
-        <div className="sidebar-trip"><span className="sidebar-trip__label">CURRENT TRIP</span><strong>{trip.title}</strong><span>{trip.startDate.slice(0, 4)} · {members.length} travelers</span></div>
+      <a className="skip-link" href="#trip-content">Skip to trip</a>
+      <header className="topbar">
+        <button className="brand-lockup" onClick={() => navigate('overview')} aria-label="Roadbook overview"><Compass size={23} strokeWidth={1.5} /><strong>ROADBOOK</strong></button>
         <nav className="primary-nav" aria-label="Main navigation">
-          <span className="nav-label">TRIP SPACE</span>
-          {navItems.map(({ id, label, icon: Icon }) => <button className={`nav-item${page === id ? ' nav-item--active' : ''}`} key={id} onClick={() => navigate(id)} aria-current={page === id ? 'page' : undefined}><Icon size={18} strokeWidth={1.8} /><span>{label}</span>{id === 'money' && mode === 'live' && <span className="nav-live-dot" />}</button>)}
+          {navItems.map(({ id, label }) => <button className={`nav-item${page === id ? ' nav-item--active' : ''}`} key={id} onClick={() => navigate(id)} aria-current={page === id ? 'page' : undefined}>{label}</button>)}
         </nav>
-        <div className="sidebar-lower">
-          {trip.sheetUrl && <a className="source-link" href={trip.sheetUrl} target="_blank" rel="noreferrer"><BookOpen size={16} /><span>Open source Sheet</span><ArrowUpRight size={14} /></a>}
-          <div className="sidebar-current"><div className="sidebar-current__icon"><Map size={16} /></div><div><span>{progress?.phase === 'upcoming' ? 'NEXT MEET-UP' : 'CURRENT STOP'}</span><strong>{progress?.phase === 'upcoming' ? `${trip.days[0]?.city ?? 'Trip start'} · ${formatDate(trip.startDate)}` : progress?.currentPlace}</strong></div></div>
-          <div className="sidebar-user"><span className="sidebar-avatar">{initials(members[0]?.name ?? 'T')}</span><div><strong>{members[0]?.name ?? 'Traveler'}</strong><span>Trip organizer</span></div><CircleHelp size={16} /></div>
+        <div className="topbar__right">
+          <span className={`storage-pill storage-pill--${mode}`}><i />{storageStatus}</span>
+          <span className="group-count">{members.length} travelers</span>
+          <div className="header-roster" aria-label={members.map((member) => member.name).join(', ')}>{members.slice(0, 3).map((member) => <span title={member.name} key={member.id}>{initials(member.name)}</span>)}</div>
+          {trip.sheetUrl && <a className="source-link" href={trip.sheetUrl} target="_blank" rel="noreferrer" aria-label="Open source spreadsheet"><BookOpen size={18} /></a>}
         </div>
-      </aside>
-
-      {mobileMenuOpen && <button className="sidebar-scrim" onClick={() => setMobileMenuOpen(false)} aria-label="Close navigation" />}
-
-      <main className="main-column">
-        <header className="topbar">
-          <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen((current) => !current)} aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}>{mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}</button>
-          <div className="breadcrumb"><span>TRIPS</span><span className="breadcrumb-separator">/</span><strong>{trip.title}</strong></div>
-          <div className="topbar__right"><span className="today-date">{formatCurrentDate()}</span><span className={`storage-pill storage-pill--${mode}`}><i />{storageStatus}</span>{mode === 'live' ? <span className="share-verified"><ShieldCheck size={15} />Link access</span> : null}</div>
-        </header>
+      </header>
+      <main className="main-column" id="trip-content">
         {mode === 'local' && privateFixture && <div className="local-preview-banner"><span className="local-preview-banner__mark"><RotateCcw size={14} /></span><span><strong>Local preview.</strong> Private trip details and ledger edits stay in this browser until the shared Sheet is connected.</span>{canInitialize && <button onClick={() => void initializeSheet()} disabled={initializing}>{initializing ? 'Setting up…' : 'Initialize shared Sheet'}</button>}</div>}
         {mode === 'error' && <div className="local-preview-banner local-preview-banner--error"><span className="local-preview-banner__mark"><CircleHelp size={14} /></span><span><strong>Shared link needs attention.</strong> {modeMessage} Local sample data is still visible; edits are paused.</span></div>}
 
-        {page === 'overview' && <Overview trip={trip} memberCount={members.length} onItinerary={() => navigate('itinerary')} onMoney={() => navigate('money')} />}
-        {page === 'itinerary' && <Itinerary trip={trip} members={members} mode={mode} error={modeMessage} onSaveDay={persistDay} />}
-        {page === 'money' && <MoneyPool members={members} expenses={expenses} history={history} mode={mode} error={modeMessage} onSave={persistExpense} onDelete={removeExpense} onAddMember={addMember} onReset={resetLedger} onCopyInvite={copyInviteLink} inviteAvailable={invitePresent} canInitialize={canInitialize} onInitialize={initializeSheet} initializing={initializing} />}
+        {page === 'overview' && <Overview trip={trip} members={members} expenses={expenses} onItinerary={(dayId) => { setFocusedDayId(dayId ?? ''); navigate('itinerary'); }} onMoney={() => navigate('money')} onAddExpense={() => { navigate('money'); setExpenseFormRequest((value) => value + 1); }} />}
+        {page === 'itinerary' && <Itinerary trip={trip} members={members} initialDayId={focusedDayId} mode={mode} error={modeMessage} onSaveDay={persistDay} />}
+        {page === 'money' && <MoneyPool members={members} expenses={expenses} history={history} formRequest={expenseFormRequest} mode={mode} error={modeMessage} onSave={persistExpense} onDelete={removeExpense} onAddMember={addMember} onReset={resetLedger} onCopyInvite={copyInviteLink} inviteAvailable={invitePresent} canInitialize={canInitialize} onInitialize={initializeSheet} initializing={initializing} />}
 
-        <footer className="page-footer"><div><span className="footer-symbol"><Compass size={15} /></span><span>Good trips leave room for the unexpected.</span></div><span>{trip.title} · {trip.startDate.slice(0, 4)}</span></footer>
+        <footer className="page-footer"><div><Compass size={16} /><span>Roadbook</span></div><span>{trip.title} · {trip.startDate.slice(0, 4)}</span>{trip.sheetUrl && <a href={trip.sheetUrl} target="_blank" rel="noreferrer">Open spreadsheet <ArrowUpRight size={14} /></a>}</footer>
       </main>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
